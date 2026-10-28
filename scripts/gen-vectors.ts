@@ -12,8 +12,9 @@ import { DEG, buildLayout, solve } from "../packages/kinematics/src/index.ts";
 import type { Pose } from "../packages/kinematics/src/index.ts";
 import { defaultRig } from "../packages/rig-config/src/index.ts";
 
-const g = defaultRig.geometry, lim = defaultRig.limits;
-const layout = buildLayout(g);
+import type { Geometry, Limits } from "../packages/kinematics/src/index.ts";
+
+const lim = defaultRig.limits;
 const P = (name: string, p: Partial<Pose>) => ({ name, pose: { x: 0, y: 0, z: 0, roll: 0, pitch: 0, yaw: 0, ...p } });
 
 let seed = 7;
@@ -34,26 +35,37 @@ const poses = [
     P(`random ${i}`, { x: rnd() * 30, y: rnd() * 30, z: rnd() * 20, roll: rnd() * 20 * DEG, pitch: rnd() * 20 * DEG, yaw: rnd() * 40 * DEG })),
 ];
 
-const cases = poses.map(({ name, pose }) => {
-  const sol = solve(layout, g, lim, pose);
-  return {
-    name,
-    pose,
-    ok: sol.ok,
-    alphaRad: sol.legs.map((l) => (Number.isNaN(l.alpha) ? null : Number(l.alpha.toFixed(12)))),
-    faults: sol.legs.map((l) => l.faults),
+function write(file: string, g: Geometry, lim: Limits, description: string) {
+  const layout = buildLayout(g);
+  const cases = poses.map(({ name, pose }) => {
+    const sol = solve(layout, g, lim, pose);
+    return {
+      name,
+      pose,
+      ok: sol.ok,
+      alphaRad: sol.legs.map((l) => (Number.isNaN(l.alpha) ? null : Number(l.alpha.toFixed(12)))),
+      faults: sol.legs.map((l) => l.faults),
+    };
+  });
+  const out = {
+    version: 1,
+    description,
+    toleranceRad: 1e-6,
+    geometry: g,
+    limits: lim,
+    homeHeight: Number(layout.homeHeight.toFixed(12)),
+    cases,
   };
-});
+  writeFileSync(new URL(`../test-vectors/${file}`, import.meta.url), JSON.stringify(out, null, 2) + "\n");
+  console.log(`${file}: wrote ${cases.length} cases (${cases.filter((c) => c.ok).length} fully valid)`);
+}
 
-const out = {
-  version: 1,
-  description: "Pose (mm, rad; R = Rz(yaw)Ry(pitch)Rx(roll)) to horn angle alpha per leg (rad, from horizontal). null = no solution.",
-  toleranceRad: 1e-6,
-  geometry: g,
-  limits: lim,
-  homeHeight: Number(layout.homeHeight.toFixed(12)),
-  cases,
-};
-
-writeFileSync(new URL("../test-vectors/ik-v1.json", import.meta.url), JSON.stringify(out, null, 2) + "\n");
-console.log(`wrote ${cases.length} cases (${cases.filter((c) => c.ok).length} fully valid)`);
+const DESC = "Pose (mm, rad; R = Rz(yaw)Ry(pitch)Rx(roll)) to horn angle alpha per leg (rad, from horizontal). null = no solution.";
+write("ik-v1.json", defaultRig.geometry, lim, DESC);
+// Same poses with turned and tilted servos and tilted top studs, so a port must handle the general servo frame.
+write(
+  "ik-orient-v1.json",
+  { ...defaultRig.geometry, servoYawDeg: 12, servoTiltDeg: 18, topStudTiltDeg: -10 },
+  lim,
+  `${DESC} Servos turned (servoYawDeg) and tilted (servoTiltDeg); see buildLayout for the servo frame.`,
+);

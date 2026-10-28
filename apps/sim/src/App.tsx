@@ -1,7 +1,7 @@
 import { useRef, useState, type ReactNode } from "react";
 import type { Axis, LegFault, Limits } from "@stewart/kinematics";
 import { parseRigJson } from "@stewart/rig-config";
-import { GEO } from "./params.ts";
+import { GEO, geoValue } from "./params.ts";
 import { RigView } from "./RigView.tsx";
 import { SweepPanel } from "./SweepPanel.tsx";
 import { TemplatePanel } from "./TemplatePanel.tsx";
@@ -230,8 +230,16 @@ export function App() {
             title="Geometry"
             aside={<span className="readout">Home height {buildable ? `${s.layout.homeHeight.toFixed(1)} mm` : "–"}</span>}
           >
-            {GEO.map(({ k, label, unit, min, max, step }) => (
-              <Slider key={k} id={`geo-${k}`} label={label} unit={unit} value={s.geometry[k]} min={min} max={max} step={step} onChange={(v) => s.setGeometry(k, v)} />
+            {GEO.filter((p) => !p.mount).map(({ k, label, unit, min, max, step }) => (
+              <Slider key={k} id={`geo-${k}`} label={label} unit={unit} value={geoValue(s.geometry, k)} min={min} max={max} step={step} onChange={(v) => s.setGeometry(k, v)} />
+            ))}
+            <h3 className="subhead">Mount orientation</h3>
+            <p className="hint">
+              Servo turn equal to the pair half-spacing ({s.geometry.baseHalfAngleDeg}°) makes a pair's shafts parallel, so both servos sit side by
+              side on one flat wall. Tilt angles point shafts and top studs outward-and-up (positive) or outward-and-down.
+            </p>
+            {GEO.filter((p) => p.mount).map(({ k, label, unit, min, max, step }) => (
+              <Slider key={k} id={`geo-${k}`} label={label} unit={unit} value={geoValue(s.geometry, k)} min={min} max={max} step={step} onChange={(v) => s.setGeometry(k, v)} />
             ))}
           </Section>
 

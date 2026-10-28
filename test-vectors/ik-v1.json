@@ -8,7 +8,10 @@
     "baseHalfAngleDeg": 15,
     "platformHalfAngleDeg": 30,
     "hornLength": 22,
-    "rodLength": 120
+    "rodLength": 120,
+    "servoYawDeg": 0,
+    "servoTiltDeg": 0,
+    "topStudTiltDeg": 0
   },
   "limits": {
     "servoMinDeg": -70,

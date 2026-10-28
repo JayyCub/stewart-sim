@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DEG, scoreGeometry, sweepSize, type Geometry, type SweepRange, type SweepResult } from "@stewart/kinematics";
-import { GEO } from "./params.ts";
+import { GEO, geoValue } from "./params.ts";
 import { useSim } from "./store.ts";
 import type { SweepMessage, SweepRequest } from "./sweep.worker.ts";
 
@@ -23,6 +23,9 @@ const START: Record<keyof Geometry, RangeRow> = {
   platformHalfAngleDeg: { vary: true, min: 5, max: 55, steps: 6 },
   hornLength: { vary: false, min: 16, max: 28, steps: 4 },
   rodLength: { vary: true, min: 100, max: 170, steps: 8 },
+  servoYawDeg: { vary: false, min: 0, max: 20, steps: 5 },
+  servoTiltDeg: { vary: false, min: -30, max: 30, steps: 7 },
+  topStudTiltDeg: { vary: false, min: -30, max: 30, steps: 7 },
 };
 
 /** Sweeps above this many geometries take minutes; ask for fewer steps instead. */
@@ -75,7 +78,7 @@ export function SweepPanel() {
     setFinished(true);
   };
 
-  const isCurrent = (g: Geometry) => GEO.every(({ k }) => Math.abs(g[k] - s.geometry[k]) < 1e-9);
+  const isCurrent = (g: Geometry) => GEO.every(({ k }) => Math.abs(geoValue(g, k) - geoValue(s.geometry, k)) < 1e-9);
 
   return (
     <div className="sweep">
@@ -104,7 +107,7 @@ export function SweepPanel() {
                   <input type="number" aria-label={`${label} steps`} value={r.steps} min={1} step={1} disabled={running} onChange={(e) => setRow(k, { steps: Number(e.target.value) })} />
                 </>
               ) : (
-                <span className="sweep-fixed">fixed at {s.geometry[k]}</span>
+                <span className="sweep-fixed">fixed at {geoValue(s.geometry, k)}</span>
               )}
             </div>
           );
@@ -158,7 +161,7 @@ export function SweepPanel() {
                   <td className="num">{r.score.toFixed(2)}</td>
                   {varied.map(({ k }) => (
                     <td key={k} className="num">
-                      {Number(r.geometry[k].toFixed(1))}
+                      {Number(geoValue(r.geometry, k).toFixed(1))}
                     </td>
                   ))}
                   <td className="num">

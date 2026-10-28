@@ -10,13 +10,14 @@ interface VectorFile {
   cases: { name: string; pose: Pose; ok: boolean; alphaRad: (number | null)[] }[];
 }
 
-const vf: VectorFile = JSON.parse(readFileSync(new URL("../../../test-vectors/ik-v1.json", import.meta.url), "utf8"));
-const layout = buildLayout(vf.geometry);
-
-// The same file is the acceptance test for the firmware's C++ IK.
+// The same files are the acceptance test for the firmware's C++ IK.
 // If this fails after an intentional change, regenerate with `pnpm vectors`
 // and make the C++ port pass again.
-describe("shared IK test vectors", () => {
+for (const file of ["ik-v1.json", "ik-orient-v1.json"]) {
+const vf: VectorFile = JSON.parse(readFileSync(new URL(`../../../test-vectors/${file}`, import.meta.url), "utf8"));
+const layout = buildLayout(vf.geometry);
+
+describe(`shared IK test vectors: ${file}`, () => {
   it("match the home height", () => {
     expect(layout.homeHeight).toBeCloseTo(vf.homeHeight, 9);
   });
@@ -33,3 +34,4 @@ describe("shared IK test vectors", () => {
     });
   }
 });
+}

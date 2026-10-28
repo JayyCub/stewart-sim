@@ -56,4 +56,10 @@ describe("rig config", () => {
   it("rejects bad collision values", () => {
     expect(() => parseRigConfig({ ...defaultRig, collision: { servoWidth: 0, minClearance: -1 } })).toThrow(/servoWidth must be positive[\s\S]*minClearance must not be negative/);
   });
+
+  it("accepts a rig.json without mount orientation and checks it when present", () => {
+    const { servoYawDeg: _y, servoTiltDeg: _t, topStudTiltDeg: _s, ...plain } = defaultRig.geometry;
+    expect(parseRigConfig({ ...defaultRig, geometry: plain }).geometry.servoYawDeg).toBeUndefined();
+    expect(() => parseRigConfig({ ...defaultRig, geometry: { ...plain, servoTiltDeg: 120 } })).toThrow(/servoTiltDeg must be a number from -75 to 75/);
+  });
 });

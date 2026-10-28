@@ -1,4 +1,4 @@
-import { buildLayout, type Collision, type Geometry, type Vec3 } from "@stewart/kinematics";
+import { buildLayout, servoCorners, servoFrame, type Collision, type Geometry, type Vec3 } from "@stewart/kinematics";
 
 /**
  * 1:1 drilling templates for the base and top plates.
@@ -82,6 +82,22 @@ function scaleBar(x: number, y: number, vertical: boolean) {
   return parts.join("");
 }
 
+/** Convex hull of 2D points (monotone chain), counter-clockwise. */
+function hull2(pts: [number, number][]): [number, number][] {
+  const p = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const turn = (o: [number, number], a: [number, number], b: [number, number]) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const half = (list: [number, number][]) => {
+    const h: [number, number][] = [];
+    for (const q of list) {
+      while (h.length >= 2 && turn(h[h.length - 2]!, h[h.length - 1]!, q) <= 1e-9) h.pop();
+      h.push(q);
+    }
+    h.pop();
+    return h;
+  };
+  return [...half(p), ...half([...p].reverse())];
+}
+
 /**
  * Draw one plate. The base shows each servo's body footprint, its horn pivot
  * (the shaft axis where it meets the horn plane) and the horn plane itself.
@@ -107,20 +123,18 @@ export function plateDrawing(kind: PlateKind, g: Geometry, col: Collision, meta:
 
   if (kind === "base") {
     layout.base.forEach((B, i) => {
-      const u = layout.shaftAxis[i]!;
-      const t: [number, number] = [-u[1], u[0]];
-      const at = (r: number, s: number): [number, number] => P([B[0] + u[0] * r + t[0] * s, B[1] + u[1] * r + t[1] * s]);
-      const r0 = -col.servoInset, r1 = -(col.servoInset + col.servoDepth), w = col.servoWidth / 2;
-      const quad = [at(r0, -w), at(r0, w), at(r1, w), at(r1, -w)];
+      const fr = servoFrame(layout, i);
+      const at = (r: number, sv: number): [number, number] => P([B[0] + fr.r[0] * r + fr.s[0] * sv, B[1] + fr.r[1] * r + fr.s[1] * sv]);
+      // Footprint: the outline of the body seen from above (exact for upright servos, the shadow of a tilted one).
+      const quad = hull2(servoCorners(fr, col).map((p) => P(p)));
       parts.push(`<polygon class="servo" data-leg="${i + 1}" points="${quad.map((q) => q.map(f).join(",")).join(" ")}" ${STROKE} stroke-width="0.3"/>`);
-      // Horn plane: the line the horn swings in, drawn on the side the horn points (away from its pair partner).
-      const beta = layout.beta[i]!;
-      const side = Math.sign(Math.cos(beta) * t[0] + Math.sin(beta) * t[1]);
-      const [ha, hb] = [at(0, -4 * side), at(0, (g.hornLength + 4) * side)];
+      // Horn plane: where the horn swings, drawn on the side the horn points (away from its pair partner).
+      const [ha, hb] = [at(0, -4), at(0, g.hornLength + 4)];
       parts.push(`<line x1="${f(ha[0])}" y1="${f(ha[1])}" x2="${f(hb[0])}" y2="${f(hb[1])}" ${STROKE} stroke-width="0.2" stroke-dasharray="1.5 1"/>`);
       const [px, py] = P(B);
       parts.push(`<g class="pivot" data-leg="${i + 1}" data-x="${f(B[0])}" data-y="${f(B[1])}">${cross(px, py, 3)}</g>`);
-      const [lx, ly] = at(12, 0);
+      const out = Math.hypot(B[0], B[1]);
+      const [lx, ly] = P([(B[0] * (out + 12)) / out, (B[1] * (out + 12)) / out]);
       parts.push(text(lx, ly + 1.2, String(i + 1), 3.4, "middle", ' font-weight="bold"'));
     });
   } else {
@@ -145,14 +159,18 @@ export function plateDrawing(kind: PlateKind, g: Geometry, col: Collision, meta:
     kind === "base"
       ? [
           `BASE PLATE — ${meta.rigName} — ${meta.date}`,
-          `Base radius ${f(g.baseRadius)} mm · servo pair half-spacing ${f(g.baseHalfAngleDeg)}° · horn ${f(g.hornLength)} mm`,
-          `Rectangles: servo body footprints (${f(col.servoDepth)} × ${f(col.servoWidth)} mm), shaft facing out.`,
+          `Base radius ${f(g.baseRadius)} mm · servo pair half-spacing ${f(g.baseHalfAngleDeg)}° · horn ${f(g.hornLength)} mm` +
+            (g.servoYawDeg || g.servoTiltDeg ? ` · servo turn ${f(g.servoYawDeg ?? 0)}°, tilt ${f(g.servoTiltDeg ?? 0)}°` : ""),
+          g.servoTiltDeg
+            ? `Outlines: each tilted servo body seen from above (it sits on a ${f(Math.abs(g.servoTiltDeg))}° wedge), shaft facing out.`
+            : `Rectangles: servo body footprints (${f(col.servoDepth)} × ${f(col.servoWidth)} mm), shaft facing out.`,
           "+ marks: horn pivot (shaft centre at the horn face). Dashed: the plane the horn swings in.",
           "Print at 100% / Actual size. Both scale bars must measure 100 mm before you drill.",
         ]
       : [
           `TOP PLATE — ${meta.rigName} — ${meta.date}`,
-          `Platform radius ${f(g.platformRadius)} mm · top joint half-spacing ${f(g.platformHalfAngleDeg)}°`,
+          `Platform radius ${f(g.platformRadius)} mm · top joint half-spacing ${f(g.platformHalfAngleDeg)}°` +
+            (g.topStudTiltDeg ? ` · stud tilt ${f(g.topStudTiltDeg)}°` : ""),
           `Holes: ${f(HOLE_DIAMETER)} mm for the top ball joints. Leg numbers match the base plate.`,
           "Fit with +x over the base plate's +x.",
           "Print at 100% / Actual size. Both scale bars must measure 100 mm before you drill.",

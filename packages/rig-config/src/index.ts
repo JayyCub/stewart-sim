@@ -52,6 +52,11 @@ export function parseRigConfig(raw: unknown): RigConfig {
     for (const k of GEOMETRY_KEYS) if (!isNum(geo[k]) || (geo[k] as number) <= 0) errs.push(`geometry.${k} must be a positive number`);
     if (isNum(geo.baseHalfAngleDeg) && geo.baseHalfAngleDeg >= 60) errs.push("geometry.baseHalfAngleDeg must be under 60");
     if (isNum(geo.platformHalfAngleDeg) && geo.platformHalfAngleDeg >= 60) errs.push("geometry.platformHalfAngleDeg must be under 60");
+    // Optional mount orientation; omitted means 0 (radial, level shafts and studs).
+    for (const [k, max] of [["servoYawDeg", 60], ["servoTiltDeg", 75], ["topStudTiltDeg", 75]] as const) {
+      if (geo[k] === undefined) continue;
+      if (!isNum(geo[k]) || Math.abs(geo[k] as number) > max) errs.push(`geometry.${k} must be a number from -${max} to ${max}`);
+    }
   }
 
   const lim = raw.limits;

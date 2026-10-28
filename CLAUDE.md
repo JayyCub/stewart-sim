@@ -42,7 +42,7 @@ Requires **Node 22** (`.nvmrc`; `nvm use`). Node < 20.19 fails with a `styleText
 ```
 pnpm install
 pnpm dev          # sim at http://localhost:5173
-pnpm test         # vitest: unit tests + shared vectors (91 tests at last run)
+pnpm test         # vitest: unit tests + shared vectors (135 tests at last run)
 pnpm typecheck    # tsc across all packages
 pnpm build        # static build to apps/sim/dist (relative base, works on GitHub Pages)
 pnpm vectors      # regenerate test-vectors/ik-v1.json after an INTENTIONAL IK change
@@ -60,6 +60,8 @@ Run `pnpm typecheck && pnpm test` before considering any change done.
 - Legs indexed **0–5 in code**, shown as **1–6 in the UI**. Servo pair k (k = 0,1,2) holds legs
   2k and 2k+1, centred at k × 120°. Leg 2k is at `centre − halfAngle` and its horn points toward
   decreasing angle; leg 2k+1 mirrors it.
+- Optional mount angles in geometry (`servoYawDeg`, `servoTiltDeg`, `topStudTiltDeg`, 0 when
+  omitted) rotate each servo's frame; see `buildLayout`. IK uses `l · hornUp` and `l · hornDir`.
 - Horn angle `alpha` is measured from level; positive raises the horn tip. Mirrored servos are
   handled by `servos[i].direction` in rig.json, not in the kinematics.
 - Collision checks are opt-in: `solve(..., col)`. The shared test vectors and the firmware port

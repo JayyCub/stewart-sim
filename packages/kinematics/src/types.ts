@@ -23,6 +23,21 @@ export interface Geometry {
   hornLength: number;
   /** Ball centre to ball centre, mm. */
   rodLength: number;
+  /**
+   * Turn of each servo about the vertical through its horn pivot, degrees; 0 when
+   * omitted. 0 = shaft radial. Mirrored within a pair, positive turns the two shafts
+   * toward each other's direction: equal to baseHalfAngleDeg the pair's shafts are
+   * parallel, so both servos can sit side by side on one flat wall.
+   */
+  servoYawDeg?: number;
+  /**
+   * Tilt of each shaft out of horizontal, degrees; 0 when omitted. Positive points the
+   * shaft outward and up, which leans the horn's swing plane in toward the centre.
+   * The bottom ball stud follows the shaft.
+   */
+  servoTiltDeg?: number;
+  /** Tilt of each top ball stud out of horizontal, degrees; 0 when omitted. Positive points it outward and up. */
+  topStudTiltDeg?: number;
 }
 
 /** Physical limits, ideally measured on the real parts. */
@@ -55,11 +70,15 @@ export interface Layout {
   base: Vec3[];
   /** Top joint points in the platform frame (z = 0). */
   platform: Vec3[];
-  /** Angle of each horn's plane in the xy plane: horn direction at alpha = 0 is (cos beta, sin beta, 0). */
+  /** Heading of each horn at alpha = 0 in the xy plane: hornDir = (cos beta, sin beta, 0). */
   beta: number[];
-  /** Unit vector along each servo shaft (radial), which is also the bottom ball stud axis. */
+  /** Horn direction at alpha = 0 (horizontal, pointing away from the pair partner). */
+  hornDir: Vec3[];
+  /** Horn direction at alpha = +90°. The horn tip is pivot + a(cos alpha · hornDir + sin alpha · hornUp). */
+  hornUp: Vec3[];
+  /** Unit vector along each servo shaft (outward), which is also the bottom ball stud axis. */
   shaftAxis: Vec3[];
-  /** Unit vector along each top ball stud in the platform frame (radial). */
+  /** Unit vector along each top ball stud in the platform frame (outward). */
   topStudAxis: Vec3[];
   /** Height of the platform frame above the base frame at home pose (all horns level), mm. */
   homeHeight: number;
