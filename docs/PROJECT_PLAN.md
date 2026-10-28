@@ -50,8 +50,8 @@ and a framed binary serial protocol (Phase 3).
 ## Phase 0: Setup and measurements
 
 - [x] pnpm monorepo, Vite + React + TS app with a Three.js canvas
-- [x] Vitest wired; GitHub Actions workflow for tests
-- [ ] Deploy the app to GitHub Pages
+- [x] Vitest wired; GitHub Actions CI green
+- [x] Deploy the app to GitHub Pages (https://jayycub.github.io/stewart-sim/)
 - [ ] Measure one MG996R: body size, tab hole spacing, shaft position relative to body
 - [ ] Measure the stock horn: radius of each hole from shaft centre
 - [ ] Measure ball-joint swivel: angle where the ball link binds, both directions

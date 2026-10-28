@@ -18,27 +18,26 @@ Done:
 - Sim app: 3D rig (plywood plates, MG996R bodies, horns, rods, ball joints), pose sliders with
   reach shaded on the track, geometry and limit sliders, per-leg table, reach table,
   copy-rig.json button, light/dark theme, phone layout
-- CI and GitHub Pages workflows in `.github/workflows/`
+- Repo at https://github.com/JayyCub/stewart-sim (public); CI green; sim live at
+  https://jayycub.github.io/stewart-sim/
 - Node 22 pinned
 
 Not done / known gaps:
 
 - rig.json is placeholder values (`"measured": false`)
-- No GitHub remote yet
 - No rod-vs-horn or servo-body collision check
 - App can copy rig.json but not load one
 
 ## Next steps, in order
 
 1. **Jacob:** take the Phase 0 measurements (`docs/HARDWARE.md` checklist) and update rig.json.
-2. Create the GitHub repo, push, and enable Pages (Settings -> Pages -> Source: GitHub Actions).
-3. Phase 1 remaining, roughly in this order:
+2. Phase 1 remaining, roughly in this order:
    - Load rig.json in the app (file picker / paste), not just copy out
    - Collision checks: rod vs horn, adjacent servo bodies
    - Roll × pitch reachability map
    - Geometry sweep within part constraints, ranked by workspace
    - 1:1 SVG drilling template export (base + top), with 100 mm scale bar
-4. Decide where IK runs on hardware (see `docs/DECISIONS.md`) before Phase 3.
+3. Decide where IK runs on hardware (see `docs/DECISIONS.md`) before Phase 3.
 
 ## Session history
 
@@ -47,3 +46,5 @@ Not done / known gaps:
 - **2026-10-27** — Wrote the phased plan; scaffolded the repo; built kinematics core, tests,
   vectors and the sim app; published a preview; moved the project to `~/Documents/stewart-sim`.
   Desktop shell sandbox would not start on this Mac, so work continues in Claude Code locally.
+  Installed Node 22, moved workflows into `.github/`, created the public GitHub repo, CI green,
+  Pages live. Phase 0 software done; only measurements remain.
