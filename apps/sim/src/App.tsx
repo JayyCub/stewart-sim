@@ -4,6 +4,7 @@ import { parseRigJson } from "@stewart/rig-config";
 import { GEO } from "./params.ts";
 import { RigView } from "./RigView.tsx";
 import { SweepPanel } from "./SweepPanel.tsx";
+import { TemplatePanel } from "./TemplatePanel.tsx";
 import { TiltMapView } from "./TiltMapView.tsx";
 import { DEG, exportRigJson, useSim } from "./store.ts";
 
@@ -276,6 +277,10 @@ export function App() {
 
           <Section title="Geometry sweep">
             <SweepPanel />
+          </Section>
+
+          <Section title="Drilling templates">
+            <TemplatePanel onBlocked={flash} />
           </Section>
 
           <div className="actions">

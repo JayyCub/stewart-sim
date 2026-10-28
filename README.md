@@ -19,6 +19,7 @@ vectors (`test-vectors/ik-v1.json`), so the sim predicts the machine instead of 
 ```
 packages/kinematics/   Pure TS: inverse kinematics, limit checks, workspace reach
 packages/rig-config/   rig.json (geometry, limits, servo calibration) + validator
+packages/template/     1:1 drilling templates for the base and top plates
 apps/sim/              React + Three.js app: 3D rig, pose/geometry sliders, leg status
 test-vectors/          Pose -> horn angle golden values; the C++ port must match them
 firmware/stewart_uno/  Arduino sketch (Phase 3)

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Grid, Html, OrbitControls } from "@react-three/drei";
 import { Euler, Quaternion, Vector3 } from "three";
 import type { Vec3 } from "@stewart/kinematics";
+import { PLATE_MARGIN } from "@stewart/template";
 import { useSim } from "./store.ts";
 
 /** Colours chosen to read on both the light and dark viewport. */
@@ -55,8 +56,8 @@ function Rig() {
 
   const T: [number, number, number] = [pose.x, pose.y, layout.homeHeight + pose.z];
   const rot = new Euler(pose.roll, pose.pitch, pose.yaw, "ZYX");
-  const baseR = geometry.baseRadius + 22;
-  const topR = geometry.platformRadius + 14;
+  const baseR = geometry.baseRadius + PLATE_MARGIN.base;
+  const topR = geometry.platformRadius + PLATE_MARGIN.top;
 
   return (
     <group>

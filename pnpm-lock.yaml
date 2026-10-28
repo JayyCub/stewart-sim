@@ -32,6 +32,9 @@ importers:
       '@stewart/rig-config':
         specifier: workspace:*
         version: link:../../packages/rig-config
+      '@stewart/template':
+        specifier: workspace:*
+        version: link:../../packages/template
       react:
         specifier: ^19.3.1
         version: 19.3.1
@@ -64,6 +67,12 @@ importers:
   packages/kinematics: {}
 
   packages/rig-config:
+    dependencies:
+      '@stewart/kinematics':
+        specifier: workspace:*
+        version: link:../kinematics
+
+  packages/template:
     dependencies:
       '@stewart/kinematics':
         specifier: workspace:*
