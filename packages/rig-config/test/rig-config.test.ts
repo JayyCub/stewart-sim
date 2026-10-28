@@ -44,4 +44,16 @@ describe("rig config", () => {
   it("validates parsed text like any other config", () => {
     expect(() => parseRigJson("[]")).toThrow(/must be a JSON object/);
   });
+
+  it("fills in collision defaults for an older rig.json without them", () => {
+    const { collision: _, ...old } = structuredClone(defaultRig);
+    const rig = parseRigConfig({ ...old, collision: { rodRadius: 3 } });
+    expect(rig.collision.rodRadius).toBe(3);
+    expect(rig.collision.servoWidth).toBe(19.7);
+    expect(parseRigConfig(old).collision).toEqual(defaultRig.collision);
+  });
+
+  it("rejects bad collision values", () => {
+    expect(() => parseRigConfig({ ...defaultRig, collision: { servoWidth: 0, minClearance: -1 } })).toThrow(/servoWidth must be positive[\s\S]*minClearance must not be negative/);
+  });
 });

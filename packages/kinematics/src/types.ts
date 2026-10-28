@@ -65,7 +65,34 @@ export interface Layout {
   homeHeight: number;
 }
 
-export type LegFault = "no-solution" | "servo-range" | "ball-swivel-bottom" | "ball-swivel-top";
+/** Part sizes and margins for collision checks. Lengths in mm. */
+export interface Collision {
+  /** Servo body height along its long (vertical) axis, mounting tabs excluded. */
+  servoLength: number;
+  /** Servo body width, tangential to the base circle. */
+  servoWidth: number;
+  /** Servo body depth along the shaft (radial), shaft excluded. */
+  servoDepth: number;
+  /** Shaft centre down from the top end of the body. */
+  shaftFromTop: number;
+  /** Horn pivot (horn plane) to the body's shaft face, radially. */
+  servoInset: number;
+  /** Rod radius used for rod-vs-body tests (use the rod-end housing radius to be safe). */
+  rodRadius: number;
+  /** Smallest allowed gap between two servo bodies. */
+  minClearance: number;
+  /** Smallest allowed angle between the horn and the rod at the bottom ball joint, degrees. */
+  hornRodMinDeg: number;
+}
+
+export type LegFault =
+  | "no-solution"
+  | "servo-range"
+  | "ball-swivel-bottom"
+  | "ball-swivel-top"
+  | "servo-clash"
+  | "rod-hits-servo"
+  | "rod-hits-horn";
 
 export interface LegSolution {
   /** Horn angle from horizontal, radians. Positive raises the horn tip. NaN if unreachable. */

@@ -41,7 +41,7 @@ Requires **Node 22** (`.nvmrc`; `nvm use`). Node < 20.19 fails with a `styleText
 ```
 pnpm install
 pnpm dev          # sim at http://localhost:5173
-pnpm test         # vitest: unit tests + shared vectors (61 tests at last run)
+pnpm test         # vitest: unit tests + shared vectors (73 tests at last run)
 pnpm typecheck    # tsc across all packages
 pnpm build        # static build to apps/sim/dist (relative base, works on GitHub Pages)
 pnpm vectors      # regenerate test-vectors/ik-v1.json after an INTENTIONAL IK change
@@ -61,6 +61,8 @@ Run `pnpm typecheck && pnpm test` before considering any change done.
   decreasing angle; leg 2k+1 mirrors it.
 - Horn angle `alpha` is measured from level; positive raises the horn tip. Mirrored servos are
   handled by `servos[i].direction` in rig.json, not in the kinematics.
+- Collision checks are opt-in: `solve(..., col)`. The shared test vectors and the firmware port
+  cover IK + joint limits only; collisions are a sim-side design check.
 - Ball-joint limit model: swivel = tilt of the rod away from perpendicular to the ball's stud.
   Bottom stud axis = servo shaft (radial). Top stud axis = radial in the platform frame.
 - IK per leg (closed form): `alpha = asin(L / sqrt(M² + N²)) − atan2(N, M)` with

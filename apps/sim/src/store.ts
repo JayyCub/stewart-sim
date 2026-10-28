@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { DEG, buildLayout, solve, workspace, type Axis, type Geometry, type Layout, type Limits, type Pose, type Reach, type Solution } from "@stewart/kinematics";
+import { DEG, buildLayout, solve, workspace, type Axis, type Collision, type Geometry, type Layout, type Limits, type Pose, type Reach, type Solution } from "@stewart/kinematics";
 import { defaultRig, type RigConfig } from "@stewart/rig-config";
 
 export const HOME: Pose = { x: 0, y: 0, z: 0, roll: 0, pitch: 0, yaw: 0 };
@@ -25,9 +25,9 @@ interface State extends Derived {
   resetRig: () => void;
 }
 
-function derive(geometry: Geometry, limits: Limits, pose: Pose): Derived {
+function derive(geometry: Geometry, limits: Limits, pose: Pose, col: Collision): Derived {
   const layout = buildLayout(geometry);
-  return { layout, solution: solve(layout, geometry, limits, pose), reach: workspace(layout, geometry, limits) };
+  return { layout, solution: solve(layout, geometry, limits, pose, col), reach: workspace(layout, geometry, limits, col) };
 }
 
 export const useSim = create<State>((set, get) => ({
@@ -35,27 +35,27 @@ export const useSim = create<State>((set, get) => ({
   geometry: { ...defaultRig.geometry },
   limits: { ...defaultRig.limits },
   pose: HOME,
-  ...derive(defaultRig.geometry, defaultRig.limits, HOME),
+  ...derive(defaultRig.geometry, defaultRig.limits, HOME, defaultRig.collision),
 
   setGeometry: (k, v) => {
     const geometry = { ...get().geometry, [k]: v };
-    set({ geometry, ...derive(geometry, get().limits, get().pose) });
+    set({ geometry, ...derive(geometry, get().limits, get().pose, get().rig.collision) });
   },
   setLimit: (k, v) => {
     const limits = { ...get().limits, [k]: v };
-    set({ limits, ...derive(get().geometry, limits, get().pose) });
+    set({ limits, ...derive(get().geometry, limits, get().pose, get().rig.collision) });
   },
   setPose: (k, v) => {
     const pose = { ...get().pose, [k]: v };
-    const { layout, geometry, limits } = get();
-    set({ pose, solution: solve(layout, geometry, limits, pose) });
+    const { layout, geometry, limits, rig } = get();
+    set({ pose, solution: solve(layout, geometry, limits, pose, rig.collision) });
   },
   resetPose: () => {
-    const { layout, geometry, limits } = get();
-    set({ pose: HOME, solution: solve(layout, geometry, limits, HOME) });
+    const { layout, geometry, limits, rig } = get();
+    set({ pose: HOME, solution: solve(layout, geometry, limits, HOME, rig.collision) });
   },
   loadRig: (rig) => {
-    set({ rig, geometry: { ...rig.geometry }, limits: { ...rig.limits }, pose: HOME, ...derive(rig.geometry, rig.limits, HOME) });
+    set({ rig, geometry: { ...rig.geometry }, limits: { ...rig.limits }, pose: HOME, ...derive(rig.geometry, rig.limits, HOME, rig.collision) });
   },
   resetRig: () => get().loadRig(get().rig),
 }));

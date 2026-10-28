@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
-import { DEG, TILT_BALL, TILT_NO_SOLUTION, TILT_OK, TILT_SERVO, tiltAt, tiltMap } from "@stewart/kinematics";
+import { DEG, TILT_BALL, TILT_COLLISION, TILT_NO_SOLUTION, TILT_OK, TILT_SERVO, tiltAt, tiltMap } from "@stewart/kinematics";
 import { useSim } from "./store.ts";
 
 /** Half-width of the map in degrees; matches the roll and pitch sliders. */
@@ -10,6 +10,7 @@ const TICKS = [-30, -15, 0, 15, 30];
 const LEGEND = [
   { cell: TILT_OK, label: "Reachable", token: "--reach" },
   { cell: TILT_BALL, label: "Ball joint", token: "--warn" },
+  { cell: TILT_COLLISION, label: "Collision", token: "--clash" },
   { cell: TILT_SERVO, label: "Servo limit", token: "--bad" },
   { cell: TILT_NO_SOLUTION, label: "Out of reach", token: "--track" },
 ] as const;
@@ -37,8 +38,8 @@ export function TiltMapView() {
   const { x, y, z, yaw } = s.pose;
 
   const map = useMemo(
-    () => tiltMap(s.layout, s.geometry, s.limits, { x, y, z, yaw, roll: 0, pitch: 0 }, RANGE_DEG * DEG, N),
-    [s.layout, s.geometry, s.limits, x, y, z, yaw],
+    () => tiltMap(s.layout, s.geometry, s.limits, { x, y, z, yaw, roll: 0, pitch: 0 }, RANGE_DEG * DEG, N, s.rig.collision),
+    [s.layout, s.geometry, s.limits, s.rig.collision, x, y, z, yaw],
   );
   const reachable = map.cells.reduce((k, c) => k + (c === TILT_OK ? 1 : 0), 0) / map.cells.length;
 

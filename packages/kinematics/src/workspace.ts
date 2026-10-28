@@ -1,6 +1,6 @@
 import { DEG } from "./math.ts";
 import { solve } from "./ik.ts";
-import type { Geometry, Layout, Limits, Pose } from "./types.ts";
+import type { Collision, Geometry, Layout, Limits, Pose } from "./types.ts";
 
 export type Axis = keyof Pose;
 export const AXES: readonly Axis[] = ["x", "y", "z", "roll", "pitch", "yaw"];
@@ -22,10 +22,10 @@ export interface Reach {
  * Assumes reachability is continuous from home along the axis, which holds
  * for normal layouts; the search stops at the first failure it brackets.
  */
-export function axisReach(layout: Layout, g: Geometry, lim: Limits, axis: Axis): Reach {
-  if (!solve(layout, g, lim, ZERO).ok) return { min: 0, max: 0 };
+export function axisReach(layout: Layout, g: Geometry, lim: Limits, axis: Axis, col?: Collision): Reach {
+  if (!solve(layout, g, lim, ZERO, col).ok) return { min: 0, max: 0 };
   const search = (dir: 1 | -1) => {
-    const ok = (t: number) => solve(layout, g, lim, { ...ZERO, [axis]: dir * t }).ok;
+    const ok = (t: number) => solve(layout, g, lim, { ...ZERO, [axis]: dir * t }, col).ok;
     if (ok(CAP[axis])) return CAP[axis];
     let lo = 0, hi = CAP[axis];
     for (let k = 0; k < 40; k++) {
@@ -38,6 +38,6 @@ export function axisReach(layout: Layout, g: Geometry, lim: Limits, axis: Axis):
   return { min: -search(-1), max: search(1) };
 }
 
-export function workspace(layout: Layout, g: Geometry, lim: Limits): Record<Axis, Reach> {
-  return Object.fromEntries(AXES.map((ax) => [ax, axisReach(layout, g, lim, ax)])) as Record<Axis, Reach>;
+export function workspace(layout: Layout, g: Geometry, lim: Limits, col?: Collision): Record<Axis, Reach> {
+  return Object.fromEntries(AXES.map((ax) => [ax, axisReach(layout, g, lim, ax, col)])) as Record<Axis, Reach>;
 }

@@ -11,10 +11,13 @@ Done:
 
 - pnpm monorepo with `packages/kinematics`, `packages/rig-config`, `apps/sim`
 - Closed-form rotary IK with limit checks (no solution, servo range, bottom/top ball swivel)
+- Collision checks (optional `collision` section in rig.json, defaults filled in): servo bodies
+  clashing, rod through any servo body, rod folded onto its horn. On the placeholder geometry
+  the pairs clash below ~14.5° half-spacing, and rod-hits-servo cuts heave-down to −18.5 mm
 - Single-axis workspace reach (bisection per axis)
 - Roll × pitch reachability map: grid around the current pose, each cell coloured by the limit
   that blocks it; click or drag on it to set roll and pitch
-- 61 Vitest tests: constraint satisfaction on 500 random poses, heave/symmetry/mirror checks,
+- 73 Vitest tests: constraint satisfaction on 500 random poses, heave/symmetry/mirror checks,
   fault detection, workspace boundary, rig.json validation, and the shared vectors
 - `test-vectors/ik-v1.json`: 34 cases (29 fully valid, including one unreachable pose)
 - Sim app: 3D rig (plywood plates, MG996R bodies, horns, rods, ball joints), pose sliders with
@@ -28,13 +31,13 @@ Done:
 Not done / known gaps:
 
 - rig.json is placeholder values (`"measured": false`)
-- No rod-vs-horn or servo-body collision check
+- Collision part sizes are MG996R listing values, not measurements; the rod is modelled in the
+  horn plane (ignores the ball stud's outward offset), so rod-hits-servo errs on the safe side
 
 ## Next steps, in order
 
 1. **Jacob:** take the Phase 0 measurements (`docs/HARDWARE.md` checklist) and update rig.json.
 2. Phase 1 remaining, roughly in this order:
-   - Collision checks: rod vs horn, adjacent servo bodies
    - Geometry sweep within part constraints, ranked by workspace
    - 1:1 SVG drilling template export (base + top), with 100 mm scale bar
 3. Decide where IK runs on hardware (see `docs/DECISIONS.md`) before Phase 3.

@@ -67,7 +67,8 @@ kinematics core is written and tested; every later phase reuses it.
 
 1. [x] **Kinematics core**: pose -> six horn angles (closed-form rotary IK, see CLAUDE.md).
 2. [x] **Limit checks**: no solution, servo range, ball-joint swivel (bottom and top).
-   - [ ] Rod-hits-horn / servo-body collision check
+   - [x] Collision checks: servo bodies clashing, rod through a servo body, rod folded onto its horn
+     (part sizes in `rig.json` → `collision`; listing values until measured)
 3. [x] **3D view**: plates, servo bodies, horns, rods; a leg over a limit turns red.
 4. [x] **Sliders**: base/platform radius, joint half-spacings, horn length, rod length; pose sliders.
 5. [x] **Workspace**: single-axis reach on each axis (shaded on the pose sliders + table).

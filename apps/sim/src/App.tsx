@@ -13,6 +13,9 @@ const FAULT_LABEL: Record<LegFault, string> = {
   "servo-range": "Servo limit",
   "ball-swivel-bottom": "Lower ball joint",
   "ball-swivel-top": "Upper ball joint",
+  "servo-clash": "Servo bodies clash",
+  "rod-hits-servo": "Rod hits a servo",
+  "rod-hits-horn": "Rod hits horn",
 };
 
 interface SliderProps {

@@ -1,5 +1,6 @@
 import { DEG, add, dot, mul, norm, rotation, scale, sub, unit } from "./math.ts";
-import type { Geometry, LegFault, LegSolution, Layout, Limits, Pose, Solution, Vec3 } from "./types.ts";
+import { collisionFaults, servoClashes } from "./collision.ts";
+import type { Collision, Geometry, LegFault, LegSolution, Layout, Limits, Pose, Solution, Vec3 } from "./types.ts";
 
 /** Centres of the three servo pairs, radians. Pair k holds legs 2k and 2k+1. */
 const PAIR_CENTRES = [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3];
@@ -55,8 +56,12 @@ export function buildLayout(g: Geometry): Layout {
  *   M = 2a * l_z
  *   N = 2a * (cos(beta) l_x + sin(beta) l_y)
  * so alpha = asin(L / sqrt(M^2 + N^2)) - atan2(N, M).
+ *
+ * With `col`, collision faults are added too (servo bodies, rod vs body,
+ * rod vs horn). Without it, only the IK and joint limits are checked, which
+ * is what the shared test vectors and the firmware port cover.
  */
-export function solve(layout: Layout, g: Geometry, lim: Limits, pose: Pose): Solution {
+export function solve(layout: Layout, g: Geometry, lim: Limits, pose: Pose, col?: Collision): Solution {
   const R = rotation(pose.roll, pose.pitch, pose.yaw);
   const T: Vec3 = [pose.x, pose.y, layout.homeHeight + pose.z];
   const a = g.hornLength, s = g.rodLength;
@@ -96,7 +101,22 @@ export function solve(layout: Layout, g: Geometry, lim: Limits, pose: Pose): Sol
     legs.push({ alpha, pivot: B, hornTip, top: P, swivelBottom, swivelTop, faults });
   }
 
+  if (col && Number.isFinite(layout.homeHeight)) {
+    const extra = collisionFaults(layout, col, legs, clashingLegs(layout, col));
+    legs.forEach((leg, i) => leg.faults.push(...extra[i]!));
+  }
+
   return { legs, ok: Number.isFinite(layout.homeHeight) && legs.every((leg) => leg.faults.length === 0) };
+}
+
+/** Servo clashes depend only on the layout and part sizes, so cache them per layout. */
+const clashCache = new WeakMap<Layout, { col: Collision; legs: Set<number> }>();
+function clashingLegs(layout: Layout, col: Collision): Set<number> {
+  const hit = clashCache.get(layout);
+  if (hit && hit.col === col) return hit.legs;
+  const legs = new Set(servoClashes(layout, col).flat());
+  clashCache.set(layout, { col, legs });
+  return legs;
 }
 
 /** Rod length actually achieved by a solved leg; equals g.rodLength when the solution is right. */

@@ -15,6 +15,16 @@
     "servoMaxDeg": 70,
     "ballSwivelDeg": 30
   },
+  "collision": {
+    "servoLength": 40.7,
+    "servoWidth": 19.7,
+    "servoDepth": 42.9,
+    "shaftFromTop": 10,
+    "servoInset": 3,
+    "rodRadius": 2,
+    "minClearance": 0,
+    "hornRodMinDeg": 20
+  },
   "servos": [
     { "channel": 0, "direction": 1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
     { "channel": 1, "direction": -1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },

@@ -1,4 +1,4 @@
-import type { Geometry, Limits } from "@stewart/kinematics";
+import { DEFAULT_COLLISION, type Collision, type Geometry, type Limits } from "@stewart/kinematics";
 import defaultRigJson from "../rig.json" with { type: "json" };
 
 /** Per-servo calibration. Firmware maps horn angle to pulse width with these. */
@@ -22,6 +22,8 @@ export interface RigConfig {
   notes?: string;
   geometry: Geometry;
   limits: Limits;
+  /** Part sizes for collision checks. Optional in the file; missing values take the MG996R defaults. */
+  collision: Collision;
   servos: ServoCal[];
 }
 
@@ -31,6 +33,7 @@ const GEOMETRY_KEYS: (keyof Geometry)[] = [
   "baseRadius", "platformRadius", "baseHalfAngleDeg", "platformHalfAngleDeg", "hornLength", "rodLength",
 ];
 const LIMIT_KEYS: (keyof Limits)[] = ["servoMinDeg", "servoMaxDeg", "ballSwivelDeg"];
+const COLLISION_KEYS = Object.keys(DEFAULT_COLLISION) as (keyof Collision)[];
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
@@ -61,6 +64,25 @@ export function parseRigConfig(raw: unknown): RigConfig {
       errs.push("limits.ballSwivelDeg must be between 0 and 90");
   }
 
+  let collision: Collision = { ...DEFAULT_COLLISION };
+  if (raw.collision !== undefined) {
+    const col = raw.collision;
+    if (!isObj(col)) errs.push("collision must be an object");
+    else {
+      for (const k of COLLISION_KEYS) {
+        if (col[k] === undefined) continue;
+        if (!isNum(col[k])) errs.push(`collision.${k} must be a number`);
+        else collision[k] = col[k] as number;
+      }
+      for (const k of ["servoLength", "servoWidth", "servoDepth", "rodRadius"] as const)
+        if (isNum(col[k]) && (col[k] as number) <= 0) errs.push(`collision.${k} must be positive`);
+      for (const k of ["servoInset", "minClearance"] as const)
+        if (isNum(col[k]) && (col[k] as number) < 0) errs.push(`collision.${k} must not be negative`);
+      if (isNum(col.hornRodMinDeg) && (col.hornRodMinDeg < 0 || col.hornRodMinDeg >= 180))
+        errs.push("collision.hornRodMinDeg must be between 0 and 180");
+    }
+  }
+
   const servos = raw.servos;
   if (!Array.isArray(servos) || servos.length !== 6) errs.push("servos must list exactly 6 servos");
   else {
@@ -77,7 +99,7 @@ export function parseRigConfig(raw: unknown): RigConfig {
   }
 
   if (errs.length) throw new RigConfigError(`Invalid rig config:\n- ${errs.join("\n- ")}`);
-  return raw as unknown as RigConfig;
+  return { ...(raw as unknown as RigConfig), collision };
 }
 
 /** Parse rig.json text (from a file or a paste). Throws RigConfigError for bad JSON or a bad config. */

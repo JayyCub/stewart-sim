@@ -17,9 +17,6 @@ const C = {
   fault: "#e0453a",
 };
 
-/** MG996R body, mm: 40.7 long (mounted vertical), 19.7 wide, 42.9 deep. Shaft sits about 10 mm below the top end. */
-const SERVO = { len: 40.7, wide: 19.7, deep: 42.9, shaftFromTop: 10 };
-const BASE_TOP_Z = -(SERVO.len - SERVO.shaftFromTop);
 const Y_UP = new Vector3(0, 1, 0);
 
 function Segment({ a, b, r, color }: { a: Vec3; b: Vec3; r: number; color: string }) {
@@ -50,8 +47,11 @@ function Ball({ p, color }: { p: Vec3; color: string }) {
 }
 
 function Rig() {
-  const { geometry, layout, solution, pose } = useSim();
+  const { geometry, layout, solution, pose, rig } = useSim();
   if (!Number.isFinite(layout.homeHeight)) return null;
+  // Servo bodies come from the rig's collision model, so what you see is what the checks test.
+  const col = rig.collision;
+  const baseTopZ = -(col.servoLength - col.shaftFromTop);
 
   const T: [number, number, number] = [pose.x, pose.y, layout.homeHeight + pose.z];
   const rot = new Euler(pose.roll, pose.pitch, pose.yaw, "ZYX");
@@ -61,7 +61,7 @@ function Rig() {
   return (
     <group>
       {/* Base plate: 6 mm plywood under the servos. */}
-      <mesh position={[0, 0, BASE_TOP_Z - 3]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh position={[0, 0, baseTopZ - 3]} rotation={[Math.PI / 2, 0, 0]}>
         <cylinderGeometry args={[baseR, baseR, 6, 72]} />
         <meshStandardMaterial color={C.plywood} roughness={0.85} />
       </mesh>
@@ -70,14 +70,15 @@ function Rig() {
         const theta = Math.atan2(B[1], B[0]);
         const leg = solution.legs[i]!;
         const bad = leg.faults.length > 0;
+        const clash = leg.faults.includes("servo-clash");
         // Servo body sits radially inward of the horn plane, centred on the pivot tangentially.
-        const inward = 3 + SERVO.deep / 2;
-        const zc = BASE_TOP_Z + SERVO.len / 2;
+        const inward = col.servoInset + col.servoDepth / 2;
+        const zc = baseTopZ + col.servoLength / 2;
         return (
           <group key={i}>
             <mesh position={[B[0] - Math.cos(theta) * inward, B[1] - Math.sin(theta) * inward, zc]} rotation={[0, 0, theta]}>
-              <boxGeometry args={[SERVO.deep, SERVO.wide, SERVO.len]} />
-              <meshStandardMaterial color={C.servo} roughness={0.6} />
+              <boxGeometry args={[col.servoDepth, col.servoWidth, col.servoLength]} />
+              <meshStandardMaterial color={clash ? C.fault : C.servo} roughness={0.6} />
             </mesh>
             {!leg.faults.includes("no-solution") && (
               <>
@@ -87,7 +88,7 @@ function Rig() {
                 <Ball p={leg.top} color={bad ? C.fault : C.ball} />
               </>
             )}
-            <Html position={[B[0] * 1.32, B[1] * 1.32, BASE_TOP_Z]} center zIndexRange={[10, 0]}>
+            <Html position={[B[0] * 1.32, B[1] * 1.32, baseTopZ]} center zIndexRange={[10, 0]}>
               <span className={`leg-tag${bad ? " bad" : ""}`}>{i + 1}</span>
             </Html>
           </group>
@@ -122,6 +123,8 @@ function FitCamera() {
 }
 
 export function RigView() {
+  const col = useSim((s) => s.rig.collision);
+  const baseTopZ = -(col.servoLength - col.shaftFromTop);
   return (
     <Canvas camera={{ position: [300, 230, 300], fov: 35, near: 1, far: 5000 }} gl={{ alpha: true, antialias: true }} dpr={[1, 2]}>
       <FitCamera />
@@ -133,7 +136,7 @@ export function RigView() {
         <Rig />
       </group>
       <Grid
-        position={[0, BASE_TOP_Z - 6.1, 0]}
+        position={[0, baseTopZ - 6.1, 0]}
         args={[600, 600]}
         cellSize={10}
         sectionSize={50}
