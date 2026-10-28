@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='5' width='24' height='4' rx='1' fill='%232457c5'/%3E%3Cpath d='M8 9 5 26M13 9l-3 17M19 9l3 17M24 9l3 17' stroke='%23586371' stroke-width='2'/%3E%3Crect x='2' y='25' width='28' height='4' rx='1' fill='%23c8a878'/%3E%3C/svg%3E" />
     <title>Stewart Platform Sim</title>
     <meta name="claude:viewport-fit-sides" content="cover" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -193,6 +194,18 @@
       .tiltmap-xlabel { grid-row: 3; grid-column: 3; text-align: center; font: 11px var(--font-label); color: var(--muted); }
       .tiltmap-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin: 10px 0 6px; padding: 0; list-style: none; font-size: 12px; color: var(--muted); }
       .tiltmap-legend .swatch { display: inline-block; width: 10px; height: 10px; margin-right: 5px; border: 1px solid var(--line); vertical-align: -1px; }
+      .sweep-grid { display: grid; grid-template-columns: minmax(0, 1fr) repeat(3, 62px); gap: 6px 6px; align-items: center; margin-top: 10px; }
+      .sweep-row { display: contents; }
+      .sweep-head { font: 11px var(--font-label); color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+      .sweep-head.num { text-align: right; }
+      .sweep-name { display: flex; align-items: center; gap: 6px; font-size: 13px; min-width: 0; }
+      .sweep-name .unit { color: var(--muted); font-size: 11.5px; }
+      .sweep-grid input[type="number"] { width: 100%; box-sizing: border-box; padding: 3px 5px; text-align: right; font: 12px var(--font-data); background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; }
+      .sweep-fixed { grid-column: span 3; text-align: right; font: 12px var(--font-data); color: var(--muted); }
+      .sweep .actions { align-items: center; padding-block: 12px 6px; }
+      .sweep-progress { width: 100%; height: 6px; accent-color: var(--accent); }
+      .sweep-results tr.current td { background: var(--good-bg); }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
       .load-error { margin: 8px 0 0; padding: 8px 10px; white-space: pre-wrap; font: 12px var(--font-data); color: var(--bad); background: var(--bad-bg); border: 1px solid var(--bad); border-radius: 4px; }
       .paste-box .actions { padding-block: 8px 0; }
       .json-fallback { width: 100%; box-sizing: border-box; font: 12px var(--font-data); background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; }

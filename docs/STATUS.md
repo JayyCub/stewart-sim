@@ -17,13 +17,14 @@ Done:
 - Single-axis workspace reach (bisection per axis)
 - Roll × pitch reachability map: grid around the current pose, each cell coloured by the limit
   that blocks it; click or drag on it to set roll and pitch
-- 73 Vitest tests: constraint satisfaction on 500 random poses, heave/symmetry/mirror checks,
+- 80 Vitest tests: constraint satisfaction on 500 random poses, heave/symmetry/mirror checks,
   fault detection, workspace boundary, rig.json validation, and the shared vectors
 - `test-vectors/ik-v1.json`: 34 cases (29 fully valid, including one unreachable pose)
 - Sim app: 3D rig (plywood plates, MG996R bodies, horns, rods, ball joints), pose sliders with
   reach shaded on the track, geometry and limit sliders, per-leg table, reach table,
   copy and load rig.json (file picker or paste, validated before it replaces the rig),
-  light/dark theme, phone layout
+  geometry sweep (Web Worker, ranked by six-axis reach, click to apply), light/dark theme,
+  phone layout
 - Repo at https://github.com/JayyCub/stewart-sim (public); CI green; sim live at
   https://jayycub.github.io/stewart-sim/
 - Node 22 pinned
@@ -38,7 +39,6 @@ Not done / known gaps:
 
 1. **Jacob:** take the Phase 0 measurements (`docs/HARDWARE.md` checklist) and update rig.json.
 2. Phase 1 remaining, roughly in this order:
-   - Geometry sweep within part constraints, ranked by workspace
    - 1:1 SVG drilling template export (base + top), with 100 mm scale bar
 3. Decide where IK runs on hardware (see `docs/DECISIONS.md`) before Phase 3.
 

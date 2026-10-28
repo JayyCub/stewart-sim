@@ -16,6 +16,8 @@ interface State extends Derived {
   limits: Limits;
   pose: Pose;
   setGeometry: (k: keyof Geometry, v: number) => void;
+  /** Replace the whole geometry at once (e.g. from a sweep result) and return to home. */
+  applyGeometry: (g: Geometry) => void;
   setLimit: (k: keyof Limits, v: number) => void;
   setPose: (k: Axis, v: number) => void;
   resetPose: () => void;
@@ -40,6 +42,10 @@ export const useSim = create<State>((set, get) => ({
   setGeometry: (k, v) => {
     const geometry = { ...get().geometry, [k]: v };
     set({ geometry, ...derive(geometry, get().limits, get().pose, get().rig.collision) });
+  },
+  applyGeometry: (g) => {
+    const geometry = { ...g };
+    set({ geometry, pose: HOME, ...derive(geometry, get().limits, HOME, get().rig.collision) });
   },
   setLimit: (k, v) => {
     const limits = { ...get().limits, [k]: v };

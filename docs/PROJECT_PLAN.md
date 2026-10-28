@@ -73,8 +73,9 @@ kinematics core is written and tested; every later phase reuses it.
 4. [x] **Sliders**: base/platform radius, joint half-spacings, horn length, rod length; pose sliders.
 5. [x] **Workspace**: single-axis reach on each axis (shaded on the pose sliders + table).
    - [x] Roll × pitch reachability map (around the current x, y, z, yaw; colour shows the blocking limit)
-6. [ ] **Sweep**: grid-search geometry within what the parts allow (150 mm rod + two 29 mm ends);
-   rank layouts by workspace.
+6. [x] **Sweep**: grid-search geometry within what the parts allow (150 mm rod + two 29 mm ends);
+   rank layouts by workspace. Runs in a Web Worker; score = geometric mean of the six single-axis
+   spans over reference spans (`REACH_REF`), collisions included; "Use" applies a result.
 7. [ ] **Template export**: 1:1 SVG in mm with hole centres, servo footprints, centre mark,
    100 mm scale bar.
 8. [x] Shared test vectors written (`test-vectors/ik-v1.json`). [x] Load rig.json in the app
