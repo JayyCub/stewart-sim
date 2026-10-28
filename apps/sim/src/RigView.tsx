@@ -82,7 +82,10 @@ function Rig() {
         const f = servoFrame(layout, i);
         const dr = -(col.servoInset + col.servoDepth / 2), dz = col.shaftFromTop - col.servoLength / 2;
         const centre = [0, 1, 2].map((k) => f.B[k]! + f.r[k]! * dr + f.z[k]! * dz) as [number, number, number];
-        const quat = new Quaternion().setFromRotationMatrix(new Matrix4().makeBasis(new Vector3(...f.r), new Vector3(...f.s), new Vector3(...f.z)));
+        // hornDir flips between the two servos of a pair, so (r, s, z) is left-handed for one of them and
+        // isn't a rotation. The body is symmetric across s, so build the basis from r and z alone.
+        const r = new Vector3(...f.r), z = new Vector3(...f.z);
+        const quat = new Quaternion().setFromRotationMatrix(new Matrix4().makeBasis(r, z.clone().cross(r), z));
         return (
           <group key={i}>
             <mesh position={centre} quaternion={quat}>
