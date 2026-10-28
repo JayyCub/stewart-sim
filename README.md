@@ -6,6 +6,14 @@ Design, preview and (later) program shows for a 6-servo rotary Stewart platform:
 The app and the firmware share one rig config (`packages/rig-config/rig.json`) and one set of IK test
 vectors (`test-vectors/ik-v1.json`), so the sim predicts the machine instead of approximating it.
 
+## Docs
+
+- `CLAUDE.md` — context for Claude Code sessions
+- `docs/STATUS.md` — where things stand and what's next
+- `docs/PROJECT_PLAN.md` — phases 0–6 with checklists
+- `docs/HARDWARE.md` — parts, power, build approach, measurement checklist
+- `docs/DECISIONS.md` — decisions made, open questions, risks
+
 ## Layout
 
 ```
@@ -18,6 +26,8 @@ scripts/               gen-vectors.ts
 ```
 
 ## Commands
+
+Requires Node 22 (`nvm use`).
 
 ```
 pnpm install
