@@ -80,5 +80,16 @@ export function parseRigConfig(raw: unknown): RigConfig {
   return raw as unknown as RigConfig;
 }
 
+/** Parse rig.json text (from a file or a paste). Throws RigConfigError for bad JSON or a bad config. */
+export function parseRigJson(text: string): RigConfig {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch (e) {
+    throw new RigConfigError(`Not valid JSON: ${(e as Error).message}`);
+  }
+  return parseRigConfig(raw);
+}
+
 /** The config checked into the repo. */
 export const defaultRig: RigConfig = parseRigConfig(defaultRigJson);

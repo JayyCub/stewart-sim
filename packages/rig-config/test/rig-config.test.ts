@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildLayout, solve } from "@stewart/kinematics";
-import { RigConfigError, defaultRig, parseRigConfig } from "../src/index.ts";
+import { RigConfigError, defaultRig, parseRigConfig, parseRigJson } from "../src/index.ts";
 
 describe("rig config", () => {
   it("ships a valid, buildable default", () => {
@@ -30,5 +30,18 @@ describe("rig config", () => {
 
   it("rejects a config without six servos", () => {
     expect(() => parseRigConfig({ ...defaultRig, servos: [] })).toThrow(/exactly 6/);
+  });
+
+  it("round-trips rig.json text", () => {
+    expect(parseRigJson(JSON.stringify(defaultRig))).toEqual(defaultRig);
+  });
+
+  it("reports text that is not JSON as a RigConfigError", () => {
+    expect(() => parseRigJson("{ geometry: ")).toThrow(RigConfigError);
+    expect(() => parseRigJson("{ geometry: ")).toThrow(/Not valid JSON/);
+  });
+
+  it("validates parsed text like any other config", () => {
+    expect(() => parseRigJson("[]")).toThrow(/must be a JSON object/);
   });
 });

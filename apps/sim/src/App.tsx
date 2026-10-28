@@ -1,5 +1,6 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import type { Axis, Geometry, LegFault, Limits } from "@stewart/kinematics";
+import { parseRigJson } from "@stewart/rig-config";
 import { RigView } from "./RigView.tsx";
 import { DEG, exportRigJson, useSim } from "./store.ts";
 
@@ -83,6 +84,10 @@ const LIM: { k: keyof Limits; label: string; unit: string; min: number; max: num
 export function App() {
   const s = useSim();
   const [toast, setToast] = useState<string | null>(null);
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const pasteBox = useRef<HTMLTextAreaElement>(null);
   const isAngle = (k: Axis) => k === "roll" || k === "pitch" || k === "yaw";
   const buildable = Number.isFinite(s.layout.homeHeight);
   const badLegs = s.solution.legs.filter((l) => l.faults.length > 0).length;
@@ -90,6 +95,25 @@ export function App() {
   const flash = (msg: string) => {
     setToast(msg);
     window.setTimeout(() => setToast(null), 2200);
+  };
+
+  /** Validate rig.json text and load it; on failure keep the current rig and show why. */
+  const loadText = (text: string, source: string) => {
+    try {
+      const rig = parseRigJson(text);
+      s.loadRig(rig);
+      setLoadError(null);
+      setPasteOpen(false);
+      flash(`Loaded ${rig.name} from ${source}`);
+    } catch (e) {
+      setLoadError(`Could not load ${source}. The current rig is unchanged.\n${(e as Error).message}`);
+    }
+  };
+
+  const loadFile = async (file: File | undefined) => {
+    if (!file) return;
+    loadText(await file.text(), file.name);
+    if (fileInput.current) fileInput.current.value = "";
   };
 
   const copyJson = async () => {
@@ -252,10 +276,41 @@ export function App() {
             <button type="button" className="primary" onClick={copyJson}>
               Copy rig.json
             </button>
+            <button type="button" onClick={() => fileInput.current?.click()}>
+              Load rig.json…
+            </button>
+            <button type="button" onClick={() => setPasteOpen((o) => !o)} aria-expanded={pasteOpen}>
+              Paste rig.json
+            </button>
             <button type="button" className="ghost" onClick={s.resetRig}>
-              Reset to saved rig
+              Reset to loaded rig
             </button>
           </div>
+          <input
+            ref={fileInput}
+            type="file"
+            accept=".json,application/json"
+            hidden
+            onChange={(e) => void loadFile(e.target.files?.[0])}
+          />
+          {pasteOpen && (
+            <div className="paste-box">
+              <textarea ref={pasteBox} className="json-fallback" rows={10} aria-label="Paste rig.json" placeholder="Paste the contents of rig.json here" autoFocus />
+              <div className="actions">
+                <button type="button" className="primary" onClick={() => loadText(pasteBox.current?.value ?? "", "pasted text")}>
+                  Load
+                </button>
+                <button type="button" className="ghost" onClick={() => setPasteOpen(false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+          {loadError && (
+            <pre className="load-error" role="alert">
+              {loadError}
+            </pre>
+          )}
           <textarea id="rig-json-fallback" className="json-fallback" rows={10} readOnly hidden aria-label="rig.json" />
         </aside>
       </main>

@@ -76,8 +76,8 @@ kinematics core is written and tested; every later phase reuses it.
    rank layouts by workspace.
 7. [ ] **Template export**: 1:1 SVG in mm with hole centres, servo footprints, centre mark,
    100 mm scale bar.
-8. [x] Shared test vectors written (`test-vectors/ik-v1.json`). [ ] Save/load rig.json in the app
-   (currently copy-to-clipboard only).
+8. [x] Shared test vectors written (`test-vectors/ik-v1.json`). [x] Load rig.json in the app
+   (file picker or paste, validated; copy to clipboard to save).
 
 **Done when:** a chosen geometry with a known workspace table, and the printed template's scale
 bar measures exactly 100 mm.

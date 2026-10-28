@@ -19,6 +19,9 @@ interface State extends Derived {
   setLimit: (k: keyof Limits, v: number) => void;
   setPose: (k: Axis, v: number) => void;
   resetPose: () => void;
+  /** Replace the rig with a validated config and return to home. */
+  loadRig: (rig: RigConfig) => void;
+  /** Discard slider edits and go back to the loaded rig. */
   resetRig: () => void;
 }
 
@@ -51,9 +54,10 @@ export const useSim = create<State>((set, get) => ({
     const { layout, geometry, limits } = get();
     set({ pose: HOME, solution: solve(layout, geometry, limits, HOME) });
   },
-  resetRig: () => {
-    set({ geometry: { ...defaultRig.geometry }, limits: { ...defaultRig.limits }, pose: HOME, ...derive(defaultRig.geometry, defaultRig.limits, HOME) });
+  loadRig: (rig) => {
+    set({ rig, geometry: { ...rig.geometry }, limits: { ...rig.limits }, pose: HOME, ...derive(rig.geometry, rig.limits, HOME) });
   },
+  resetRig: () => get().loadRig(get().rig),
 }));
 
 /** Current geometry and limits as a rig.json document, keeping the servo calibration from the loaded config. */

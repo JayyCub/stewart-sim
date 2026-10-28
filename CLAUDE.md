@@ -41,7 +41,7 @@ Requires **Node 22** (`.nvmrc`; `nvm use`). Node < 20.19 fails with a `styleText
 ```
 pnpm install
 pnpm dev          # sim at http://localhost:5173
-pnpm test         # vitest: unit tests + shared vectors (51 tests at last run)
+pnpm test         # vitest: unit tests + shared vectors (54 tests at last run)
 pnpm typecheck    # tsc across all packages
 pnpm build        # static build to apps/sim/dist (relative base, works on GitHub Pages)
 pnpm vectors      # regenerate test-vectors/ik-v1.json after an INTENTIONAL IK change
