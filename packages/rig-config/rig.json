@@ -1,0 +1,26 @@
+{
+  "name": "design-v0",
+  "measured": false,
+  "notes": "Placeholder values. Replace each with a measurement from the real parts (Phase 0), then set measured to true.",
+  "geometry": {
+    "baseRadius": 85,
+    "platformRadius": 60,
+    "baseHalfAngleDeg": 15,
+    "platformHalfAngleDeg": 30,
+    "hornLength": 22,
+    "rodLength": 120
+  },
+  "limits": {
+    "servoMinDeg": -70,
+    "servoMaxDeg": 70,
+    "ballSwivelDeg": 30
+  },
+  "servos": [
+    { "channel": 0, "direction": 1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
+    { "channel": 1, "direction": -1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
+    { "channel": 2, "direction": 1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
+    { "channel": 3, "direction": -1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
+    { "channel": 4, "direction": 1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
+    { "channel": 5, "direction": -1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 }
+  ]
+}

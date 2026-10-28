@@ -1,0 +1,67 @@
+import { create } from "zustand";
+import { DEG, buildLayout, solve, workspace, type Axis, type Geometry, type Layout, type Limits, type Pose, type Reach, type Solution } from "@stewart/kinematics";
+import { defaultRig, type RigConfig } from "@stewart/rig-config";
+
+export const HOME: Pose = { x: 0, y: 0, z: 0, roll: 0, pitch: 0, yaw: 0 };
+
+interface Derived {
+  layout: Layout;
+  solution: Solution;
+  reach: Record<Axis, Reach>;
+}
+
+interface State extends Derived {
+  rig: RigConfig;
+  geometry: Geometry;
+  limits: Limits;
+  pose: Pose;
+  setGeometry: (k: keyof Geometry, v: number) => void;
+  setLimit: (k: keyof Limits, v: number) => void;
+  setPose: (k: Axis, v: number) => void;
+  resetPose: () => void;
+  resetRig: () => void;
+}
+
+function derive(geometry: Geometry, limits: Limits, pose: Pose): Derived {
+  const layout = buildLayout(geometry);
+  return { layout, solution: solve(layout, geometry, limits, pose), reach: workspace(layout, geometry, limits) };
+}
+
+export const useSim = create<State>((set, get) => ({
+  rig: defaultRig,
+  geometry: { ...defaultRig.geometry },
+  limits: { ...defaultRig.limits },
+  pose: HOME,
+  ...derive(defaultRig.geometry, defaultRig.limits, HOME),
+
+  setGeometry: (k, v) => {
+    const geometry = { ...get().geometry, [k]: v };
+    set({ geometry, ...derive(geometry, get().limits, get().pose) });
+  },
+  setLimit: (k, v) => {
+    const limits = { ...get().limits, [k]: v };
+    set({ limits, ...derive(get().geometry, limits, get().pose) });
+  },
+  setPose: (k, v) => {
+    const pose = { ...get().pose, [k]: v };
+    const { layout, geometry, limits } = get();
+    set({ pose, solution: solve(layout, geometry, limits, pose) });
+  },
+  resetPose: () => {
+    const { layout, geometry, limits } = get();
+    set({ pose: HOME, solution: solve(layout, geometry, limits, HOME) });
+  },
+  resetRig: () => {
+    set({ geometry: { ...defaultRig.geometry }, limits: { ...defaultRig.limits }, pose: HOME, ...derive(defaultRig.geometry, defaultRig.limits, HOME) });
+  },
+}));
+
+/** Current geometry and limits as a rig.json document, keeping the servo calibration from the loaded config. */
+export function exportRigJson(s: Pick<State, "rig" | "geometry" | "limits">): string {
+  const round = <T extends object>(o: T) =>
+    Object.fromEntries(Object.entries(o).map(([k, v]) => [k, Math.round((v as number) * 100) / 100])) as T;
+  const out: RigConfig = { ...s.rig, geometry: round(s.geometry), limits: round(s.limits) };
+  return JSON.stringify(out, null, 2) + "\n";
+}
+
+export { DEG };
