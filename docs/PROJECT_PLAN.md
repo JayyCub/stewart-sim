@@ -71,7 +71,7 @@ kinematics core is written and tested; every later phase reuses it.
 3. [x] **3D view**: plates, servo bodies, horns, rods; a leg over a limit turns red.
 4. [x] **Sliders**: base/platform radius, joint half-spacings, horn length, rod length; pose sliders.
 5. [x] **Workspace**: single-axis reach on each axis (shaded on the pose sliders + table).
-   - [ ] Roll × pitch reachability map
+   - [x] Roll × pitch reachability map (around the current x, y, z, yaw; colour shows the blocking limit)
 6. [ ] **Sweep**: grid-search geometry within what the parts allow (150 mm rod + two 29 mm ends);
    rank layouts by workspace.
 7. [ ] **Template export**: 1:1 SVG in mm with hole centres, servo footprints, centre mark,

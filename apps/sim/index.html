@@ -28,6 +28,7 @@
         --good-bg: #dcefe2;
         --bad: #b42f27;
         --bad-bg: #f7dfdc;
+        --warn: #d99a2b;
         --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
         --font-label: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
         --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -48,6 +49,7 @@
           --good-bg: #17301f;
           --bad: #ff8d84;
           --bad-bg: #3b1c19;
+          --warn: #a8761c;
           color-scheme: dark;
         }
       }
@@ -66,6 +68,7 @@
         --good-bg: #17301f;
         --bad: #ff8d84;
         --bad-bg: #3b1c19;
+        --warn: #a8761c;
         color-scheme: dark;
       }
 
@@ -171,6 +174,22 @@
       button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
       button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
       button.ghost { padding: 4px 10px; font-size: 12.5px; }
+      .tiltmap-plot { display: grid; grid-template-columns: auto 26px minmax(0, 1fr); grid-template-rows: auto auto auto; column-gap: 4px; max-width: 320px; margin: 4px auto 0; }
+      .tiltmap-ylabel { grid-row: 1; grid-column: 1; writing-mode: vertical-rl; transform: rotate(180deg); align-self: center; font: 11px var(--font-label); color: var(--muted); }
+      .tiltmap-yticks { grid-row: 1; grid-column: 2; position: relative; }
+      .tiltmap-yticks span { position: absolute; right: 0; transform: translateY(50%); font: 10.5px var(--font-data); color: var(--muted); }
+      .tiltmap-frame { grid-row: 1; grid-column: 3; position: relative; aspect-ratio: 1; border: 1px solid var(--line); }
+      .tiltmap-frame canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; cursor: crosshair; touch-action: none; }
+      .tiltmap-axis { position: absolute; background: var(--ink); opacity: 0.25; pointer-events: none; }
+      .tiltmap-axis.v { top: 0; bottom: 0; width: 1px; }
+      .tiltmap-axis.h { left: 0; right: 0; height: 1px; }
+      .tiltmap-marker { position: absolute; width: 10px; height: 10px; margin: 0 0 -7px -7px; border-radius: 50%; background: var(--accent); border: 2px solid var(--panel); pointer-events: none; }
+      .tiltmap-marker.bad { background: var(--bad); }
+      .tiltmap-xticks { grid-row: 2; grid-column: 3; position: relative; height: 16px; }
+      .tiltmap-xticks span { position: absolute; top: 2px; transform: translateX(-50%); font: 10.5px var(--font-data); color: var(--muted); }
+      .tiltmap-xlabel { grid-row: 3; grid-column: 3; text-align: center; font: 11px var(--font-label); color: var(--muted); }
+      .tiltmap-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin: 10px 0 6px; padding: 0; list-style: none; font-size: 12px; color: var(--muted); }
+      .tiltmap-legend .swatch { display: inline-block; width: 10px; height: 10px; margin-right: 5px; border: 1px solid var(--line); vertical-align: -1px; }
       .load-error { margin: 8px 0 0; padding: 8px 10px; white-space: pre-wrap; font: 12px var(--font-data); color: var(--bad); background: var(--bad-bg); border: 1px solid var(--bad); border-radius: 4px; }
       .paste-box .actions { padding-block: 8px 0; }
       .json-fallback { width: 100%; box-sizing: border-box; font: 12px var(--font-data); background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; }

@@ -2,6 +2,7 @@ import { useRef, useState, type ReactNode } from "react";
 import type { Axis, Geometry, LegFault, Limits } from "@stewart/kinematics";
 import { parseRigJson } from "@stewart/rig-config";
 import { RigView } from "./RigView.tsx";
+import { TiltMapView } from "./TiltMapView.tsx";
 import { DEG, exportRigJson, useSim } from "./store.ts";
 
 /** Fixed decimals without a "-0.0" for values that round to zero. */
@@ -270,6 +271,10 @@ export function App() {
                 </tbody>
               </table>
             </div>
+          </Section>
+
+          <Section title="Roll × pitch reach">
+            <TiltMapView />
           </Section>
 
           <div className="actions">
