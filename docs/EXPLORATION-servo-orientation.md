@@ -70,7 +70,43 @@ Score = geometric mean of the six single-axis spans over reference spans (see `R
 - Tilted mounts are a new part to make accurately (printed cradle with the angle built in, or cut
   wedges). The templates draw each tilted body's outline seen from above, not the wedge itself.
 
+## Whole-design optimiser (`pnpm optimize`)
+
+Later on the same branch: `scripts/optimize.ts` searches all nine geometry and mount parameters at
+once (differential evolution, then a pattern-search polish; ~50 s, seed-repeatable) and adds what
+the sweep lacked:
+
+- **Servo torque.** Rod forces from statics for a payload at the platform centre (`legTorques`,
+  cross-checked against virtual work through the IK Jacobian), checked at home and at 80% of each
+  axis's reach. Designs over the limit are penalised by (limit / torque)⁴.
+- **Weights** per axis (config: roll and pitch 1.5, heave 1, surge/sway 0.75, yaw 0.5).
+- **Servo clearance** (3 mm) and discrete horn holes.
+- Three variants, each seeded with the previous winners: radial, tilt only, turn + tilt.
+
+Results with the default config (1 kg payload, 5.5 kg·cm usable torque):
+
+| | Score | x / y / z (mm) | roll / pitch / yaw (°) | Tilt area | Max torque |
+| --- | --- | --- | --- | --- | --- |
+| Placeholder layout | 0 | (servos within 3 mm; and needs 43 kg·cm off home) | | 19% | 42.7 kg·cm |
+| Best radial | 1.78 | 125 / 112 / 43 | 54 / 65 / 120 | 53% | 1.2 kg·cm |
+| Best tilt only | 1.97 | 151 / 147 / 47 | 57 / 67 / 120 | 58% | 2.2 kg·cm |
+| Best turn + tilt | 1.97 | 151 / 147 / 47 | 58 / 67 / 120 | 58% | 4.9 kg·cm |
+
+What changed from the hand sweeps above:
+
+- **The placeholder layout must not be built.** Away from home it is close to a singular pose:
+  15–27 mm of surge or sway needs 26–43 kg·cm to hold 1 kg, far past an MG996R. The optimised
+  radial layouts need ~1.2 kg·cm.
+- **Tilt still helps, but less than the torque-blind sweep said:** ~8–9° wedges under the servos and
+  ~9° under the top studs, about +10% score and +20% surge/sway over the best radial design.
+- **Turning the servos isn't worth building.** Turn + tilt ties tilt-only, at more torque.
+- **Several parameters sit on their limits** (rod 170 mm, horn 25 mm, base radius ~65 mm), so the
+  real answer depends on what the parts allow. Set those ranges from measurements in
+  `scripts/optimize.config.json`, then rerun.
+
 ## If this is adopted
 
-Merge the branch, then after Phase 0 measurements rerun the sweep with the mount angles ticked and
-choose between the "tilt only" and "tilt + turn" builds by how hard the mounts are to make.
+Merge the branch. After the Phase 0 measurements: put the measured limits in rig.json, set the rod,
+horn-hole and plate-size ranges in `scripts/optimize.config.json`, run `pnpm optimize`, load the
+winning `optimized/tilt-1.rig.json` (or `radial-1` for the simplest build) in the sim, and check it
+on the tilt map before printing templates.

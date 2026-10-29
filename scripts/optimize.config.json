@@ -1,0 +1,91 @@
+{
+  "_notes": [
+    "Config for `pnpm optimize`. Ranges are [min, max]; a { \"values\": [...] } entry allows only those settings.",
+    "weights: relative importance of each axis's span. These favour a ride / flight-style base: roll, pitch, heave.",
+    "rodLength: set the range to what your threaded rod + ball ends can actually make (ball centre to ball centre).",
+    "hornLength values: the radii of the holes on your horn (placeholder until measured).",
+    "servoTorqueKgCm x torqueSafety is the most torque a design may ask a servo to hold.",
+    "variants: each one fixes some parameters, so you can compare build effort against gain.",
+    "minClearanceMm: gap kept between servo bodies during the search (room for mounts and cables); overrides the rig's collision.minClearance."
+  ],
+  "weights": {
+    "x": 0.75,
+    "y": 0.75,
+    "z": 1,
+    "roll": 1.5,
+    "pitch": 1.5,
+    "yaw": 0.5
+  },
+  "payloadKg": 1.0,
+  "servoTorqueKgCm": 11,
+  "torqueSafety": 0.5,
+  "minClearanceMm": 3,
+  "params": {
+    "baseRadius": [
+      65,
+      110
+    ],
+    "platformRadius": [
+      40,
+      90
+    ],
+    "baseHalfAngleDeg": [
+      5,
+      35
+    ],
+    "platformHalfAngleDeg": [
+      5,
+      57
+    ],
+    "hornLength": {
+      "values": [
+        16,
+        19,
+        22,
+        25
+      ]
+    },
+    "rodLength": [
+      100,
+      170
+    ],
+    "servoYawDeg": [
+      -15,
+      35
+    ],
+    "servoTiltDeg": [
+      -20,
+      40
+    ],
+    "topStudTiltDeg": [
+      -40,
+      30
+    ]
+  },
+  "variants": {
+    "radial": {
+      "label": "Radial mounts (no angles)",
+      "fixed": {
+        "servoYawDeg": 0,
+        "servoTiltDeg": 0,
+        "topStudTiltDeg": 0
+      }
+    },
+    "tilt": {
+      "label": "Tilt only (plain wedges, no turn)",
+      "fixed": {
+        "servoYawDeg": 0
+      }
+    },
+    "full": {
+      "label": "Turn + tilt (compound angles)",
+      "fixed": {}
+    }
+  },
+  "search": {
+    "population": 60,
+    "generations": 150,
+    "seed": 1,
+    "keep": 3
+  }
+}
