@@ -25,7 +25,8 @@ export interface PilotInput {
 export interface Scenario {
   id: string;
   name: string;
-  description: string;
+  /** One short line for the scenario picker. */
+  summary: string;
   /** Trim airspeed to start from, m/s. */
   startSpeed: number;
   turbulence: TurbulenceLevel;
@@ -39,35 +40,40 @@ const START_ALT = 1000;
 const CRUISE = 55;
 
 export const SCENARIOS: Scenario[] = [
+  // You fly, starting trimmed for level cruise at 107 kt; hands off, it stays level.
   {
-    id: "free", name: "Free flight", description: "You fly, starting trimmed for level cruise at 107 kt. Hands off, it stays level; the platform shows what each input feels like.",
+    id: "free", name: "Free flight", summary: "Fly it yourself",
     startSpeed: CRUISE, turbulence: "off", duration: Infinity, command: () => null,
   },
+  // Coordinated turn: the rider is pressed into the seat but not sideways, so the platform only cues the roll onset.
   {
     id: "turn", name: "Coordinated turn",
-    description: "Autopilot rolls into a 30° bank, holds altitude for 20 s, rolls out. In a coordinated turn the rider is pressed into the seat but not sideways, so the platform only cues the roll onset.",
+    summary: "30° bank for 20 s",
     startSpeed: CRUISE, turbulence: "off", duration: 35,
     // Bank command ramps at 10°/s, as a pilot or autopilot would roll in.
     command: (t, trim) => ({ ap: { bank: Math.max(0, Math.min(30, (t - 3) * 10, (23 - t) * 10 + 30)) * DEG, alt: trim.alt, speed: trim.V } }),
   },
+  // A long steady forward push, reproduced by slowly tilting back (tilt coordination).
   {
-    id: "power", name: "Full power from slow flight",
-    description: "Throttle to full from 40 m/s while holding altitude. A long, steady forward push: the platform reproduces it by slowly tilting back (tilt coordination).",
+    id: "power", name: "Full power",
+    summary: "Full throttle from 78 kt",
     startSpeed: 40, turbulence: "off", duration: 30,
     command: (t, trim) => ({ ap: { bank: 0, alt: trim.alt, throttle: t > 2 ? 1 : trim.controls.throttle } }),
   },
+  // 3° up then 3° down, 1 s each. Excites the short period (fast, damped) and the phugoid (~30 s).
   {
     id: "doublet", name: "Elevator doublet",
-    description: "3° nose-up then 3° nose-down, one second each, then hands off. Excites the short-period mode (quick, well damped) and the phugoid (slow speed–altitude exchange, about 30 s).",
+    summary: "Elevator kick, then hands off",
     startSpeed: CRUISE, turbulence: "off", duration: 60,
     command: (t, trim) => {
       const de = trim.controls.de + (t >= 2 && t < 3 ? 3 * DEG : t >= 3 && t < 4 ? -3 * DEG : 0);
       return { controls: { ...trim.controls, de } };
     },
   },
+  // Wings level and altitude held in moderate turbulence; bumps come through translation and rotation.
   {
-    id: "turbulence", name: "Moderate turbulence",
-    description: "Autopilot holds wings level and altitude through moderate turbulence. Bumps come through the translational and rotational channels.",
+    id: "turbulence", name: "Turbulence",
+    summary: "Autopilot through rough air",
     startSpeed: CRUISE, turbulence: "moderate", duration: 40,
     command: (_t, trim) => ({ ap: { bank: 0, alt: trim.alt, speed: trim.V } }),
   },

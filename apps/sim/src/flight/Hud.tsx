@@ -110,7 +110,7 @@ export function Hud() {
   return (
     <>
       <div className="fl-tape left" aria-label="Airspeed">
-        <span className="fl-tape-label">Airspeed</span>
+        <span className="fl-tape-label">Speed</span>
         <span className="fl-tape-value">{(tel.air.Va * KT).toFixed(0)}</span>
         <span className="fl-tape-unit">kt</span>
       </div>
@@ -119,9 +119,9 @@ export function Hud() {
         <span className="fl-tape-value">{(tel.alt * FT).toFixed(0)}</span>
         <span className="fl-tape-unit">ft</span>
         <span className="fl-tape-sub">
-          {tel.climb >= 0 ? "▲" : "▼"} {Math.abs(tel.climb * FT * 60).toFixed(0)} ft/min
+          {tel.climb >= 0 ? "▲" : "▼"} {Math.abs(tel.climb * FT * 60).toFixed(0)} fpm
         </span>
-        <span className={`fl-tape-sub ${agl < 150 ? "warn" : ""}`}>{(agl * FT).toFixed(0)} ft above ground</span>
+        <span className={`fl-tape-sub ${agl < 150 ? "warn" : ""}`}>AGL {(agl * FT).toFixed(0)}</span>
       </div>
       <div className="fl-heading" aria-label="Heading">
         {String(hdg).padStart(3, "0")}° <span>{COMPASS[Math.round(hdg / 45) % 8]}</span>
@@ -133,8 +133,8 @@ export function Hud() {
           <dd>{r(tel.euler[0] * DEG)}°</dd>
           <dt>Pitch</dt>
           <dd>{r(tel.euler[1] * DEG, 1)}°</dd>
-          <dt>Load</dt>
-          <dd>{nz.toFixed(2)} g</dd>
+          <dt>G</dt>
+          <dd>{nz.toFixed(2)}</dd>
           <dt>Throttle</dt>
           <dd>
             <span className="fl-bar" aria-hidden="true">
@@ -142,8 +142,8 @@ export function Hud() {
             </span>
             {(thr * 100).toFixed(0)}%
           </dd>
-          <dt>Motion</dt>
-          <dd className={scale < 0.999 ? "warn" : undefined}>{scale < 0.999 ? `scaled ${(scale * 100).toFixed(0)}%` : "full"}</dd>
+          <dt>Cue</dt>
+          <dd className={scale < 0.999 ? "warn" : undefined}>{scale < 0.999 ? `${(scale * 100).toFixed(0)}%` : "Full"}</dd>
         </dl>
       </div>
     </>

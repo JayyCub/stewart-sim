@@ -15,11 +15,7 @@ const PHASE_LABEL: Record<Phase, string> = {
 
 const fmt = (v: number) => (Math.abs(v) < 0.05 ? 0 : v).toFixed(1);
 
-/** What the rig follows on this page, for the explanatory text. */
-export type FollowSource = "sliders" | "flight";
-
-export function HardwarePanel({ source = "sliders" }: { source?: FollowSource }) {
-  const what = source === "flight" ? "the flight" : "the Pose sliders and the roll × pitch map";
+export function HardwarePanel() {
   const st = useSyncExternalStore((fn) => live.subscribe(fn), () => live.status);
   const rig = useSim((s) => s.rig);
   const edited = useSim(
@@ -90,7 +86,7 @@ export function HardwarePanel({ source = "sliders" }: { source?: FollowSource })
         <>
           <p className="notice warn">
             <strong>Level horns</strong> moves every servo to 0° at once, each at its own full speed (like <code>servo_reset</code>). Keep hands clear.
-            The sim pose resets to home, then the rig follows {what}.
+            The sim pose resets to home, then the rig follows the Pose sliders and the roll × pitch map.
           </p>
           <div className="actions tight">
             <button type="button" className="primary" onClick={() => void live.level()} disabled={!maxHorn}>
@@ -138,10 +134,8 @@ export function HardwarePanel({ source = "sliders" }: { source?: FollowSource })
           <div className="readout hw-stats">
             queue {st.queued}/48 · underruns {st.underruns} · frames {st.framesSent}
           </div>
-          {st.targetRejected && <p className="hw-warn">The requested pose fails a limit check, so the rig stays at the last valid pose.</p>}
-          {st.blocked && !st.targetRejected && (
-            <p className="hw-warn">Path blocked at a limit ({st.blocked}).{source === "sliders" ? " Move the sliders back." : ""}</p>
-          )}
+          {st.targetRejected && <p className="hw-warn">The pose on the sliders fails a limit check, so the rig stays at the last valid pose.</p>}
+          {st.blocked && !st.targetRejected && <p className="hw-warn">Path blocked at a limit ({st.blocked}). Move the sliders back.</p>}
         </>
       )}
 

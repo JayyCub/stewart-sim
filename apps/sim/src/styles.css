@@ -262,9 +262,6 @@ button.icon { padding: 0 8px; font-size: 15px; line-height: 1.4; }
   .controls { border-left: 0; overflow: visible; }
 }
 @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
-.flight { display: flex; flex-direction: column; gap: 10px; }
-.flight-limit { margin: 0; font: 12px var(--font-data); color: var(--muted); }
-.flight-limit.clipped { color: var(--ink); }
 .cue-chart { margin: 0; }
 .cue-chart figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; font-size: 12.5px; margin-bottom: 3px; }
 .cue-title { font-weight: 500; }

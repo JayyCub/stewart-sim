@@ -165,10 +165,9 @@ export function App() {
           </Section>
 
           <Section title="Flight simulator">
-            <p className="hint">Fly a light aircraft and watch the platform cue its motion, side by side. Live hardware control works there too.</p>
             <div className="actions tight">
               <a className="button primary" href="./flight/">
-                Open the flight simulator
+                Open flight sim
               </a>
             </div>
           </Section>
