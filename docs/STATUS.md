@@ -54,6 +54,12 @@ Not done / known gaps:
 
 ## Session history
 
+- **2026-11-23 (later)** — Flight simulator moved out of the designer into its own page, `/flight/`: a full-screen
+  low-poly flight game (procedural terrain with lakes, forests and mountains; clouds; animated control surfaces;
+  chase and cockpit views; HUD) with the platform beside it as an inset or split view, plus Motion (cue charts,
+  washout gains) and Rig (live hardware) drawers. Terrain height is shared with the flight model, so the aircraft
+  crashes into what you see. Esc or hiding the tab always stops the rig on that page.
+
 - **2026-11-23** — Committed the hardware tooling. Built the flight model, washout cueing, cue limiter and
   the Flight simulator panel (scenarios, keyboard/gamepad, attitude indicator, aircraft-vs-platform cue charts,
   washout gains, mode table). Next: fly a scenario on the rig with the Uno connected; add an IMU on the top

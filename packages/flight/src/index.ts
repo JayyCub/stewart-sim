@@ -12,3 +12,4 @@ export {
 } from "./trim.ts";
 export { TURBULENCE_LEVELS, TURB_LENGTH, Turbulence, type TurbulenceLevel } from "./turbulence.ts";
 export { CueMeter, DEFAULT_WASHOUT, TransferFunction, Washout, bodyToRig, type CuePose, type WashoutParams } from "./washout.ts";
+export { TERRAIN_MAX, fbm, groundHeight, rawHeight, valueNoise } from "./terrain.ts";

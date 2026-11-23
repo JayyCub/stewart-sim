@@ -1,7 +1,6 @@
 import { useRef, useState, type ReactNode } from "react";
 import type { Axis, LegFault, Limits } from "@stewart/kinematics";
 import { parseRigJson, servoLabel } from "@stewart/rig-config";
-import { FlightPanel } from "./flight/FlightPanel.tsx";
 import { HardwarePanel } from "./HardwarePanel.tsx";
 import { LimitsPanel } from "./LimitsPanel.tsx";
 import { GEO, geoValue } from "./params.ts";
@@ -166,7 +165,12 @@ export function App() {
           </Section>
 
           <Section title="Flight simulator">
-            <FlightPanel />
+            <p className="hint">Fly a light aircraft and watch the platform cue its motion, side by side. Live hardware control works there too.</p>
+            <div className="actions tight">
+              <a className="button primary" href="./flight/">
+                Open the flight simulator
+              </a>
+            </div>
           </Section>
 
           <Section title="Servo limits">

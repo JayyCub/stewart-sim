@@ -7,7 +7,7 @@
  * flight reaches the rig through the same validated, rate-limited path as the sliders.
  */
 import {
-  CueMeter, FlightSim, G0, SCENARIOS, bodyToRig, linearize, modes,
+  CueMeter, FlightSim, G0, SCENARIOS, bodyToRig, groundHeight, linearize, modes,
   type Mode, type PilotInput, type Scenario, type Telemetry, type TurbulenceLevel, type WashoutParams,
 } from "@stewart/flight";
 import { PoseLimiter } from "@stewart/kinematics";
@@ -48,7 +48,7 @@ const typingIn = (el: EventTarget | null) =>
   el instanceof HTMLTextAreaElement || (el instanceof HTMLInputElement && !["range", "checkbox", "radio", "button"].includes(el.type)) || el instanceof HTMLSelectElement;
 
 export class FlightController {
-  private sim = new FlightSim(SCENARIOS[0]);
+  private sim = new FlightSim(SCENARIOS[0], { ground: groundHeight });
   private meter = new CueMeter();
   private limiter = new PoseLimiter(1);
   private held = new Set<string>();
@@ -93,6 +93,7 @@ export class FlightController {
     window.addEventListener("keydown", this.onKey);
     window.addEventListener("keyup", this.onKey);
     window.addEventListener("blur", this.onBlur);
+    document.addEventListener("visibilitychange", this.onHide);
     this.set({ running: true });
     this.raf = requestAnimationFrame(this.frame);
   }
@@ -103,6 +104,7 @@ export class FlightController {
     window.removeEventListener("keydown", this.onKey);
     window.removeEventListener("keyup", this.onKey);
     window.removeEventListener("blur", this.onBlur);
+    document.removeEventListener("visibilitychange", this.onHide);
     this.held.clear();
     this.set({ running: false });
   }
@@ -140,6 +142,10 @@ export class FlightController {
   }
 
   private onBlur = () => this.held.clear();
+  /** A hidden tab throttles timers; pause rather than fly on blind (live control stops too). */
+  private onHide = () => {
+    if (document.visibilityState === "hidden") this.pause();
+  };
 
   private onKey = (e: KeyboardEvent) => {
     if (typingIn(e.target)) return;

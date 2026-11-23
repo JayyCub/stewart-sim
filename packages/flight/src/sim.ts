@@ -81,6 +81,8 @@ export interface Telemetry {
   /** Roll, pitch, heading, rad. */
   euler: V3;
   alt: number;
+  /** Height of the ground (or water) under the aircraft, m. */
+  ground: number;
   climb: number;
   /** Specific force at the pilot's head and body rate, aircraft body axes. */
   fPilot: V3;
@@ -96,6 +98,8 @@ export interface FlightSimOptions {
   aircraft?: Aircraft;
   washout?: WashoutParams;
   seed?: number;
+  /** Height of the surface below a point (north, east), m; a crash is at or below it. Flat at 0 when omitted. */
+  ground?: (north: number, east: number) => number;
 }
 
 export class FlightSim {
@@ -112,12 +116,14 @@ export class FlightSim {
   private ap = new Autopilot();
   private seed: number;
   private accum = 0;
+  private ground: (north: number, east: number) => number;
   /** Where the control surfaces and throttle actually are (after the actuator rate limits). */
   surfaces: Controls;
 
   constructor(scenario: Scenario = SCENARIOS[0]!, opts: FlightSimOptions = {}) {
     this.ac = opts.aircraft ?? LIGHT_AIRCRAFT;
     this.seed = opts.seed ?? 1;
+    this.ground = opts.ground ?? (() => 0);
     this.washout = new Washout(opts.washout ?? DEFAULT_WASHOUT);
     this.scenario = scenario;
     this.trim = trimLevel(this.ac, scenario.startSpeed, START_ALT);
@@ -177,6 +183,7 @@ export class FlightSim {
 
   private measure(u: Controls, gust: V3): Telemetry {
     const { air } = derivative(this.ac, this.state, u, gust);
+    const ground = this.ground(this.state.pos[0], this.state.pos[1]);
     return {
       t: this.t,
       state: this.state,
@@ -184,11 +191,12 @@ export class FlightSim {
       controls: u,
       euler: eulerFromQuat(this.state.q),
       alt: altitude(this.state),
+      ground,
       climb: climbRate(this.state),
       fPilot: specificForceAt(air, this.state.w, this.ac.pilot),
       w: this.state.w,
       cue: this.telemetry?.cue ?? { x: 0, y: 0, z: 0, roll: 0, pitch: 0, yaw: 0 },
-      crashed: altitude(this.state) <= 0,
+      crashed: altitude(this.state) <= ground,
       done: this.t >= this.scenario.duration,
     };
   }

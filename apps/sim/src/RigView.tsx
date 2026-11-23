@@ -125,24 +125,25 @@ function Rig() {
 }
 
 /** Back the camera off on narrow (portrait) viewports so the whole rig stays in frame. */
-function FitCamera() {
+function FitCamera({ zoomOut }: { zoomOut: number }) {
   const { camera, size } = useThree();
   useEffect(() => {
     const aspect = size.width / Math.max(1, size.height);
-    const k = aspect < 1 ? 1.15 / aspect : 1;
+    const k = (aspect < 1 ? 1.15 / aspect : 1) * zoomOut;
     camera.position.set(300 * k, 230 * k, 300 * k);
     camera.updateProjectionMatrix();
-  }, [camera, size.width, size.height]);
+  }, [camera, size.width, size.height, zoomOut]);
   return null;
 }
 
-export function RigView() {
+/** zoomOut > 1 backs the camera off (e.g. for a small inset). */
+export function RigView({ zoomOut = 1 }: { zoomOut?: number }) {
   const col = useSim((s) => s.rig.collision);
   const layout = useSim((s) => s.layout);
   const gridZ = Number.isFinite(layout.homeHeight) ? baseTopZ(layout, col) : -(col.servoLength - col.shaftFromTop);
   return (
     <Canvas camera={{ position: [300, 230, 300], fov: 35, near: 1, far: 5000 }} gl={{ alpha: true, antialias: true }} dpr={[1, 2]}>
-      <FitCamera />
+      <FitCamera zoomOut={zoomOut} />
       <ambientLight intensity={0.9} />
       <directionalLight position={[200, 400, 150]} intensity={1.6} />
       <directionalLight position={[-250, 150, -200]} intensity={0.5} />
