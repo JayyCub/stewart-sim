@@ -59,6 +59,8 @@ Not done / known gaps:
   chase and cockpit views; HUD) with the platform beside it as an inset or split view, plus Motion (cue charts,
   washout gains) and Rig (live hardware) drawers. Terrain height is shared with the flight model, so the aircraft
   crashes into what you see. Esc or hiding the tab always stops the rig on that page.
+- **2026-11-23 (later still)** — A flight now needs the rig live (connected and levelled) before it starts, and
+  pauses if the rig stops following. The start menu carries the connect/level step.
 
 - **2026-11-23** — Committed the hardware tooling. Built the flight model, washout cueing, cue limiter and
   the Flight simulator panel (scenarios, keyboard/gamepad, attitude indicator, aircraft-vs-platform cue charts,

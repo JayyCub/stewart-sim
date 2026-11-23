@@ -35,12 +35,15 @@ function Menu() {
   const turbulence = useFlight((s) => s.turbulence);
   const started = useFlight((s) => s.tel.t > 0);
   const crashed = useFlight((s) => s.tel.crashed);
+  const rigReady = useFlight((s) => s.rigReady);
+  const rigDropped = useFlight((s) => s.rigDropped);
   const title = crashed ? "Crashed" : started ? "Paused" : "Ready for departure";
   return (
     <div className="fl-menu-wrap">
       <div className="fl-menu" role="dialog" aria-labelledby="fl-menu-title">
         <h2 id="fl-menu-title">{title}</h2>
         {crashed && <p className="fl-menu-note">The aircraft hit the ground. Restart to fly again.</p>}
+        {rigDropped && !crashed && <p className="fl-menu-note">The rig stopped following, so the flight paused. Get it live again to carry on.</p>}
         <div className="fl-scenarios" role="radiogroup" aria-label="Scenario">
           {SCENARIOS.map((s) => (
             <button
@@ -74,10 +77,20 @@ function Menu() {
           <span><kbd>V</kbd> split view</span>
           <span>Gamepad: sticks + triggers</span>
         </div>
+        <section className={`fl-rig-step ${rigReady ? "ready" : ""}`} aria-label="Rig">
+          <h3>{rigReady ? "✓ Rig live and following" : "Connect the rig to fly"}</h3>
+          {!rigReady && (
+            <p className="hint">
+              The flight only runs while the Stewart platform is live: connect to the Uno, then level the horns. If the rig stops following
+              mid-flight (Esc, a lost link), the flight pauses.
+            </p>
+          )}
+          <HardwarePanel source="flight" />
+        </section>
         <div className="fl-menu-actions">
           {started && !crashed ? (
             <>
-              <button type="button" className="primary" onClick={() => flight.start()} autoFocus>
+              <button type="button" className="primary" onClick={() => flight.start()} disabled={!rigReady} autoFocus={rigReady}>
                 Resume
               </button>
               <button type="button" onClick={() => flight.stop()}>
@@ -85,10 +98,20 @@ function Menu() {
               </button>
             </>
           ) : (
-            <button type="button" className="primary" onClick={() => (crashed ? (flight.stop(), flight.start()) : flight.start())} autoFocus>
+            <button
+              type="button"
+              className="primary"
+              onClick={() => {
+                if (crashed) flight.stop();
+                flight.start();
+              }}
+              disabled={!rigReady}
+              autoFocus={rigReady}
+            >
               {crashed ? "Restart" : "Fly"}
             </button>
           )}
+          {!rigReady && <span className="fl-menu-why">Needs the rig live</span>}
         </div>
       </div>
     </div>
@@ -114,6 +137,7 @@ export function FlightApp() {
   const [layout, setLayout] = useState<Layout>("inset");
   const [drawer, setDrawer] = useState<Drawer>(null);
   const running = useFlight((s) => s.running);
+  const rigReady = useFlight((s) => s.rigReady);
   const phase = useSyncExternalStore((fn) => live.subscribe(fn), () => live.status.phase);
 
   // The rig must always be stoppable, whether or not the Rig drawer (and its own handlers) is open.
@@ -173,7 +197,12 @@ export function FlightApp() {
         </a>
         <FlightClock />
         <div className="fl-tools">
-          <button type="button" onClick={() => (running ? flight.pause() : flight.start())}>
+          <button
+            type="button"
+            onClick={() => (running ? flight.pause() : flight.start())}
+            disabled={!running && !rigReady}
+            title={!running && !rigReady ? "Connect and level the rig first" : undefined}
+          >
             {running ? "Pause" : "Fly"}
           </button>
           <button type="button" aria-pressed={camera === "cockpit"} onClick={() => setCamera((c) => (c === "chase" ? "cockpit" : "chase"))}>

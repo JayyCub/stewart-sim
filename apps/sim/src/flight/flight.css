@@ -79,7 +79,13 @@
 .fl-turb button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .fl-keys { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 16px; font-size: 12.5px; color: var(--muted); }
 .fl-keys kbd { display: inline-block; min-width: 18px; margin-right: 3px; padding: 0 5px; text-align: center; font: 11.5px var(--font-data); color: var(--ink); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: var(--bg); }
-.fl-menu-actions { display: flex; gap: 8px; margin-top: 18px; }
+.fl-menu-actions { display: flex; align-items: center; gap: 8px; margin-top: 18px; }
+.fl-menu-why { font-size: 12.5px; color: var(--muted); }
+.fl-rig-step { margin-top: 16px; padding: 12px 14px; border: 1px solid var(--warn); border-radius: 8px; background: var(--bg); display: flex; flex-direction: column; gap: 8px; }
+.fl-rig-step.ready { border-color: var(--good); }
+.fl-rig-step h3 { margin: 0; font: 600 14px var(--font-body); color: var(--ink); text-transform: none; letter-spacing: 0; }
+.fl-rig-step.ready h3 { color: var(--good); }
+.fl-tools button:disabled { opacity: 0.45; }
 .fl-menu-actions .primary { padding-inline: 22px; }
 
 /* Drawers */

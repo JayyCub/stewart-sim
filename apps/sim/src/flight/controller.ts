@@ -5,13 +5,30 @@
  *
  * The store pose is what the 3D view draws and what live hardware control follows, so a
  * flight reaches the rig through the same validated, rate-limited path as the sliders.
+ *
+ * A flight only runs while the rig is live (connected, levelled, following): start() refuses
+ * otherwise, and the flight pauses the moment the rig stops being live (Esc, link lost,
+ * released, disconnected), so the aircraft never flies on without the robot.
  */
 import {
   CueMeter, FlightSim, G0, SCENARIOS, bodyToRig, groundHeight, linearize, modes,
   type Mode, type PilotInput, type Scenario, type Telemetry, type TurbulenceLevel, type WashoutParams,
 } from "@stewart/flight";
 import { PoseLimiter } from "@stewart/kinematics";
+import { live } from "../hardware/session.ts";
 import { HOME, useSim } from "../store.ts";
+
+/** Whether the rig is ready to follow a flight, and a way to hear when that changes. */
+export interface RigGate {
+  ready(): boolean;
+  subscribe(fn: () => void): () => void;
+}
+
+/** The page's live hardware controller as a gate: ready only while it is following the pose. */
+export const liveGate: RigGate = {
+  ready: () => live.status.phase === "live",
+  subscribe: (fn) => live.subscribe(() => fn()),
+};
 
 /** One plotted sample: aircraft vs platform, rig axes. Forces m/s² (heave with 1 g removed), rates °/s. */
 export interface Sample {
@@ -33,6 +50,10 @@ export interface FlightStatus {
   modes: Mode[];
   params: WashoutParams;
   pilot: PilotInput;
+  /** The rig is live, so a flight may start. */
+  rigReady: boolean;
+  /** Set when the flight paused because the rig stopped being live. */
+  rigDropped: boolean;
 }
 
 export const HISTORY_S = 15;
@@ -60,12 +81,23 @@ export class FlightController {
   private listeners = new Set<(s: FlightStatus) => void>();
   history: Sample[] = [];
   status: FlightStatus;
+  private gate: RigGate;
 
-  constructor() {
+  constructor(gate: RigGate) {
+    this.gate = gate;
     this.status = {
       running: false, scenario: this.sim.scenario, turbulence: this.sim.turbulenceLevel, tel: this.sim.telemetry,
       scale: 1, clipShare: 0, gamepad: null, modes: this.computeModes(), params: { ...this.sim.washout.params }, pilot: { ...this.sim.pilot },
+      rigReady: gate.ready(), rigDropped: false,
     };
+    gate.subscribe(() => {
+      const ready = gate.ready();
+      if (!ready && this.status.running) {
+        this.pause();
+        this.set({ rigDropped: true });
+      }
+      if (ready !== this.status.rigReady) this.set({ rigReady: ready });
+    });
   }
 
   subscribe(fn: (s: FlightStatus) => void): () => void {
@@ -86,16 +118,22 @@ export class FlightController {
     }
   }
 
-  start(): void {
-    if (this.status.running) return;
+  /** Start or resume flying. Refused (returns false) unless the rig is live. */
+  start(): boolean {
+    if (this.status.running) return true;
+    if (!this.gate.ready()) {
+      this.set({ rigReady: false });
+      return false;
+    }
     if (this.sim.telemetry.crashed) this.reset();
     this.last = performance.now();
     window.addEventListener("keydown", this.onKey);
     window.addEventListener("keyup", this.onKey);
     window.addEventListener("blur", this.onBlur);
     document.addEventListener("visibilitychange", this.onHide);
-    this.set({ running: true });
+    this.set({ running: true, rigDropped: false });
     this.raf = requestAnimationFrame(this.frame);
+    return true;
   }
 
   /** Pause: the aircraft freezes and the platform holds its last pose. */
@@ -238,4 +276,4 @@ export class FlightController {
   }
 }
 
-export const flight = new FlightController();
+export const flight = new FlightController(liveGate);
