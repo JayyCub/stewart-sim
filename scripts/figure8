@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+"""3D figure 8 that works all six axes at once.
+
+Usage:
+  scripts/figure8 SIZE PERIOD [--flat] [--cycles N] [--ignore-limits] [--port /dev/cu.usbmodemXXXX]
+
+  SIZE    mm of surge either side of home; every other axis scales with it
+  PERIOD  seconds per full figure 8
+  --flat  only surge and sway: a plain level figure 8
+
+With SIZE = 20 the platform traces a figure 8 20 mm long either way and 10 mm wide
+(surge x1, sway x2), rises at the crossing and dips in the loops (heave +/-5 mm, x2),
+banks into each loop (roll +/-5 deg), nods (pitch +/-3 deg, x2) and swings its heading
+(yaw +/-6 deg). Every pose is solved and checked with the shared IK before anything
+moves (scripts/plan_path.ts); a SIZE that doesn't fit is refused with the largest that
+does. Ctrl+C eases back home and holds; see docs/BENCH_SCRIPTS.md.
+"""
+import argparse
+import sys
+
+from path_wave import add_common_args, run_path
+
+
+def spec_for(size: float, flat: bool) -> dict[str, list[float]]:
+    spec = {"x": [size, 1, 0], "y": [size / 2, 2, 0]}
+    if not flat:
+        spec.update({
+            "z": [size / 4, 2, 90],       # up at the crossing, down in the loops
+            "roll": [size / 4, 1, 0],     # bank into each loop (turning direction flips per loop)
+            "pitch": [size * 0.15, 2, 0],
+            "yaw": [size * 0.3, 1, 90],
+        })
+    return spec
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="3D figure 8 across all six axes.")
+    ap.add_argument("size", type=float, help="mm of surge either side of home; the other axes scale with it")
+    ap.add_argument("period", type=float, help="seconds per full figure 8")
+    ap.add_argument("--flat", action="store_true", help="surge and sway only (level figure 8)")
+    add_common_args(ap)
+    args = ap.parse_args()
+    if args.size <= 0:
+        ap.error("size must be positive")
+    return run_path(
+        name="Figure 8" + (" (flat)" if args.flat else ""),
+        spec=spec_for(args.size, args.flat),
+        period=args.period,
+        args=args,
+        fits_hint=lambda k: f"SIZE up to {k * args.size:.1f}",
+    )
+
+
+if __name__ == "__main__":
+    sys.exit(main())

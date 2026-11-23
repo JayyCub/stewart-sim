@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+"""Heave the platform: all six horns rise and fall together in a slow sine wave.
+
+Usage:
+  scripts/heave AMPLITUDE PERIOD [--cycles N] [--ignore-limits] [--port /dev/cu.usbmodemXXXX]
+
+  AMPLITUDE  horn swing either side of level, degrees (10 means -10..+10)
+  PERIOD     seconds for one full up-and-down cycle
+  --cycles   stop by itself after N cycles (default: run until stopped)
+
+Stopping: press Ctrl+C (or run `pkill -f scripts/heave` from another terminal).
+The horns ease back to level, hold there, and the script exits. Pressing Ctrl+C a
+second time skips the easing and exits at once; the servos hold where they are.
+
+Safety:
+  - AMPLITUDE must fit inside the rig.json horn limits (servoMinDeg..servoMaxDeg).
+  - The peak horn speed (2*pi*AMPLITUDE/PERIOD) must not exceed
+    rig.json motion.maxHornDegPerSec; the script refuses and tells you the shortest
+    allowed period. The loop also slows down along the path rather than exceed it.
+  - --ignore-limits turns both refusals into warnings; the speed limit then follows
+    the requested wave. The firmware's 500-2500 us window still applies.
+  - The first cycle ramps the amplitude up from zero so the start is gentle.
+  - All six pulses go out in one "A" frame, so the horns move together.
+
+Equal horn angles on all six legs give pure vertical motion (heave) because the
+legs are symmetric, so this script needs no IK and its amplitude is in horn degrees
+(surge, sway and circle use the IK and take mm). The loop is shared: scripts/wave_runner.py.
+Needs firmware/servo_test (v2) flashed and `pip install pyserial`.
+"""
+
+import argparse
+import math
+import sys
+
+from rig_serial import IGNORE_LIMITS_HELP, check_channels, load_rig, outside_firmware_window
+from wave_runner import run_motion
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Heave the platform up and down (all horns together).")
+    ap.add_argument("amplitude", type=float, help="horn swing either side of level, degrees")
+    ap.add_argument("period", type=float, help="seconds per full up-and-down cycle")
+    ap.add_argument("--cycles", type=float, help="stop by itself after this many cycles")
+    ap.add_argument("--port", help="serial port (default: auto-detect, or $STEWART_PORT)")
+    ap.add_argument("--ignore-limits", action="store_true", help=IGNORE_LIMITS_HELP)
+    args = ap.parse_args()
+
+    rig = load_rig()
+    amp, period = args.amplitude, args.period
+    lo, hi = rig["limits"]["servoMinDeg"], rig["limits"]["servoMaxDeg"]
+    vmax = rig.get("motion", {}).get("maxHornDegPerSec")
+
+    if amp <= 0 or period <= 0:
+        ap.error("amplitude and period must be positive")
+    if args.cycles is not None and args.cycles <= 0:
+        ap.error("--cycles must be positive")
+    peak = 2 * math.pi * amp / period
+
+    def limit_problem(msg: str) -> bool:
+        """Refuse (True) or, with --ignore-limits, warn and carry on (False)."""
+        if args.ignore_limits:
+            print(f"Warning: {msg} (--ignore-limits).", file=sys.stderr)
+            return False
+        print(f"Refused: {msg}. Pass --ignore-limits to override.", file=sys.stderr)
+        return True
+
+    if vmax is None and limit_problem("rig.json has no motion.maxHornDegPerSec"):
+        return 2
+    if not (-amp >= lo and amp <= hi):
+        if limit_problem(f"+/-{amp:g} deg does not fit the rig.json horn limits {lo}..{hi} deg"):
+            return 2
+    if vmax is not None and peak > vmax:
+        min_period = 2 * math.pi * amp / vmax
+        if limit_problem(
+            f"peak horn speed would be {peak:.0f} deg/s, over the rig.json limit of {vmax:g} deg/s "
+            f"(a period of at least {min_period:.1f} s keeps +/-{amp:g} deg inside it)"
+        ):
+            return 2
+    if vmax is None or peak > vmax:
+        # Overridden: let the speed limit follow the requested wave. The first-cycle
+        # ramp can add up to a quarter on top of the steady-state peak.
+        vmax = 1.25 * peak
+
+    servos = rig["servos"]
+    msg = check_channels(servos) or outside_firmware_window(servos, [[-amp, amp]] * len(servos))
+    if msg:
+        print(msg, file=sys.stderr)
+        return 2
+
+    return run_motion(
+        port=args.port,
+        servos=servos,
+        degs_at=lambda s, phi: [amp * s * math.sin(phi)] * len(servos),
+        period=period,
+        horn_speed_limit=vmax,
+        cycles=args.cycles,
+        status=lambda s, phi: f"horns {amp * s * math.sin(phi):+6.1f} deg",
+        banner=f"Heaving +/-{amp:g} deg every {period:g} s (peak {peak:.0f} deg/s).",
+    )
+
+
+if __name__ == "__main__":
+    sys.exit(main())

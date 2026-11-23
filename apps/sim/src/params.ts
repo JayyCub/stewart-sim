@@ -1,7 +1,10 @@
 import type { Geometry } from "@stewart/kinematics";
 
+/** Geometry fields that shape the build (frontDeg only names a direction, so it is not swept). */
+export type DesignKey = Exclude<keyof Geometry, "frontDeg">;
+
 /** Geometry parameters: labels and slider bounds, shared by the sliders and the sweep. */
-export const GEO: { k: keyof Geometry; label: string; unit: string; min: number; max: number; step: number; mount?: true }[] = [
+export const GEO: { k: DesignKey; label: string; unit: string; min: number; max: number; step: number; mount?: true }[] = [
   { k: "baseRadius", label: "Base radius", unit: "mm", min: 40, max: 160, step: 0.5 },
   { k: "platformRadius", label: "Platform radius", unit: "mm", min: 30, max: 140, step: 0.5 },
   { k: "baseHalfAngleDeg", label: "Servo pair half-spacing", unit: "°", min: 3, max: 40, step: 0.5 },

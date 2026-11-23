@@ -5,3 +5,4 @@ dist/
 .vite/
 .playwright-mcp/
 optimized/
+__pycache__/

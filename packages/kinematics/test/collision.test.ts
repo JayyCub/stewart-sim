@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  DEFAULT_COLLISION as C, DEG, TILT_COLLISION, buildLayout, servoClashes, solve, tiltMap, workspace,
+  DEFAULT_COLLISION as C, DEG, TILT_COLLISION, buildLayout, servoClashes, servoCorners, servoFrame, solve, tiltMap, workspace,
   type Geometry, type Limits, type Pose,
 } from "../src/index.ts";
 
@@ -68,5 +68,17 @@ describe("collision-aware workspace", () => {
   it("shows collisions on the tilt map", () => {
     const m = tiltMap(layout, geo, lim, pose(), 10 * DEG, 11, { ...C, minClearance: 5 });
     expect(m.cells[5 * 11 + 5]).toBe(TILT_COLLISION);
+  });
+
+  it("offsets the body across the horn by shaftFromSide, toward the pair partner when small", () => {
+    const f = servoFrame(layout, 0);
+    const across = (c: typeof C) => servoCorners(f, c).map((p) => (p[0] - f.B[0]) * f.s[0] + (p[1] - f.B[1]) * f.s[1] + (p[2] - f.B[2]) * f.s[2]);
+    const centred = across(C);
+    expect(Math.max(...centred)).toBeCloseTo(C.servoWidth / 2);
+    expect(Math.min(...centred)).toBeCloseTo(-C.servoWidth / 2);
+    // Lying MG996R: 40.7 mm along the horn, shaft 10 mm from the outer end (s points away from the partner).
+    const lying = across({ ...C, servoWidth: 40.7, shaftFromSide: 10 });
+    expect(Math.max(...lying)).toBeCloseTo(10);
+    expect(Math.min(...lying)).toBeCloseTo(-30.7);
   });
 });

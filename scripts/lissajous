@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""Build your own multi-axis motion: one sine wave per axis, all sharing one period.
+
+Usage:
+  scripts/lissajous PERIOD [--x SPEC] [--y SPEC] [--z SPEC] [--roll SPEC] [--pitch SPEC] [--yaw SPEC]
+                    [--cycles N] [--ignore-limits] [--port /dev/cu.usbmodemXXXX]
+
+  PERIOD  seconds per cycle of the slowest (harmonic 1) wave
+  SPEC    AMP[:HARMONIC[:PHASE]]
+            AMP       mm for x/y/z, degrees for roll/pitch/yaw (either side of home)
+            HARMONIC  whole number 1-6: how many times this axis repeats per cycle (default 1)
+            PHASE     degrees to shift this axis's wave (default 0; 90 starts it at its peak)
+
+Examples:
+  scripts/lissajous 6 --x 15 --y 15:1:90              # circle (same as scripts/circle 15 6)
+  scripts/lissajous 6 --x 20 --y 10:2                 # flat figure 8
+  scripts/lissajous 8 --roll 6 --pitch 6:1:90         # tilt that wobbles round in a circle
+  scripts/lissajous 8 --z 8:2 --yaw 10 --roll 4:3     # mix anything
+
+Every pose is solved and checked with the shared IK before anything moves
+(scripts/plan_path.ts); a path that doesn't fit is refused with how far to scale it.
+Ctrl+C eases back home and holds; see docs/BENCH_SCRIPTS.md.
+"""
+import argparse
+import sys
+
+from path_wave import AXES, add_common_args, run_path
+
+
+def parse_spec(text: str) -> list[float]:
+    parts = text.split(":")
+    if not 1 <= len(parts) <= 3:
+        raise argparse.ArgumentTypeError("use AMP[:HARMONIC[:PHASE]], e.g. 10 or 10:2 or 10:2:90")
+    try:
+        amp = float(parts[0])
+        harmonic = int(parts[1]) if len(parts) > 1 else 1
+        phase = float(parts[2]) if len(parts) > 2 else 0.0
+    except ValueError:
+        raise argparse.ArgumentTypeError("use AMP[:HARMONIC[:PHASE]] with numbers, e.g. 10:2:90")
+    if amp < 0 or not 1 <= harmonic <= 6:
+        raise argparse.ArgumentTypeError("AMP must be >= 0 and HARMONIC a whole number 1-6")
+    return [amp, harmonic, phase]
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Combine sine waves on any axes into one motion.")
+    ap.add_argument("period", type=float, help="seconds per cycle of the harmonic-1 waves")
+    for axis in AXES:
+        unit = "mm" if axis in ("x", "y", "z") else "deg"
+        ap.add_argument(f"--{axis}", type=parse_spec, metavar="AMP[:H[:PH]]", help=f"{axis} wave, amplitude in {unit}")
+    add_common_args(ap)
+    args = ap.parse_args()
+    spec = {axis: getattr(args, axis) for axis in AXES if getattr(args, axis) and getattr(args, axis)[0] > 0}
+    if not spec:
+        ap.error("give at least one axis, e.g. --x 15 --y 15:1:90")
+    return run_path(
+        name="Lissajous",
+        spec=spec,
+        period=args.period,
+        args=args,
+        fits_hint=lambda k: f"scaling every amplitude to {k * 100:.0f}%",
+    )
+
+
+if __name__ == "__main__":
+    sys.exit(main())

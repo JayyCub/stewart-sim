@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+"""Move one servo of the rig to a horn angle (bench test).
+
+Usage:
+  scripts/move_servo SERVO DEG     SERVO 1-6 (as labelled / shown in the UI), DEG = horn angle from level
+  scripts/move_servo SERVO off     let that servo go limp
+  scripts/move_servo SERVO DEG --port /dev/cu.usbmodemXXXX
+
+SERVO is the number written on the servo (rig.json servos[].label), not the leg index.
+DEG follows the project convention: 0 = horn level, positive raises the horn tip.
+Channel, direction, centre, trim, us/deg and the horn limits all come from
+packages/rig-config/rig.json. Requests outside servoMinDeg..servoMaxDeg are refused
+unless you pass --ignore-limits (the firmware's 500-2500 us window still applies).
+
+Needs firmware/servo_test flashed on the Uno and `pip install pyserial`.
+Each call resets the Uno (DTR pulse) and waits about 2 s for it to boot.
+"""
+
+import argparse
+import sys
+
+from rig_serial import IGNORE_LIMITS_HELP, Link, LinkError, deg_to_us, find_port, leg_for_label, load_rig, outside_firmware_window
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Move one servo to a horn angle (degrees from level).")
+    ap.add_argument("servo", type=int, help="servo number 1-6, as labelled")
+    ap.add_argument("deg", help="horn angle in degrees from level (+ raises the horn), or 'off'")
+    ap.add_argument("--port", help="serial port (default: auto-detect, or $STEWART_PORT)")
+    ap.add_argument("--ignore-limits", action="store_true", help=IGNORE_LIMITS_HELP)
+    args = ap.parse_args()
+
+    rig = load_rig()
+    servos = rig["servos"]
+    leg = leg_for_label(servos, args.servo)
+    if leg is None:
+        ap.error(f"servo must be 1-{len(servos)} (the numbers written on the servos)")
+    servo = servos[leg]
+    ch = servo["channel"]
+
+    if args.deg.lower() == "off":
+        cmd = f"O {ch}"
+        desc = f"servo {args.servo} (channel {ch}) off"
+    else:
+        try:
+            deg = float(args.deg)
+        except ValueError:
+            ap.error("deg must be a number or 'off'")
+        lo, hi = rig["limits"]["servoMinDeg"], rig["limits"]["servoMaxDeg"]
+        if not lo <= deg <= hi:
+            if not args.ignore_limits:
+                print(
+                    f"Refused: {deg:g} deg is outside the rig.json limits {lo}..{hi} deg "
+                    "(--ignore-limits to override).",
+                    file=sys.stderr,
+                )
+                return 2
+            print(f"Warning: {deg:g} deg is outside the rig.json limits {lo}..{hi} deg (--ignore-limits).", file=sys.stderr)
+        msg = outside_firmware_window([servo], [[deg]], legs=[leg])
+        if msg:
+            print(msg, file=sys.stderr)
+            return 2
+        us = deg_to_us(servo, deg)
+        cmd = f"S {ch} {us}"
+        desc = f"servo {args.servo} (channel {ch}) -> {deg:g} deg = {us} us"
+
+    try:
+        with Link(find_port(args.port)) as link:
+            link.command(cmd)
+    except LinkError as e:
+        print(e, file=sys.stderr)
+        return 1
+    print(desc)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,6 +1,8 @@
 import { useRef, useState, type ReactNode } from "react";
 import type { Axis, LegFault, Limits } from "@stewart/kinematics";
-import { parseRigJson } from "@stewart/rig-config";
+import { parseRigJson, servoLabel } from "@stewart/rig-config";
+import { HardwarePanel } from "./HardwarePanel.tsx";
+import { LimitsPanel } from "./LimitsPanel.tsx";
 import { GEO, geoValue } from "./params.ts";
 import { RigView } from "./RigView.tsx";
 import { SweepPanel } from "./SweepPanel.tsx";
@@ -75,8 +77,8 @@ const POSE_AXES: { k: Axis; label: string; unit: "mm" | "°"; range: number }[] 
 
 
 const LIM: { k: keyof Limits; label: string; unit: string; min: number; max: number; step: number }[] = [
-  { k: "servoMinDeg", label: "Servo min", unit: "°", min: -90, max: 0, step: 1 },
-  { k: "servoMaxDeg", label: "Servo max", unit: "°", min: 0, max: 90, step: 1 },
+  { k: "servoMinDeg", label: "Servo min", unit: "°", min: -100, max: 0, step: 0.1 },
+  { k: "servoMaxDeg", label: "Servo max", unit: "°", min: 0, max: 100, step: 0.1 },
   { k: "ballSwivelDeg", label: "Ball joint swivel", unit: "°", min: 5, max: 60, step: 1 },
 ];
 
@@ -158,6 +160,14 @@ export function App() {
             </p>
           )}
 
+          <Section title="Hardware">
+            <HardwarePanel />
+          </Section>
+
+          <Section title="Servo limits">
+            <LimitsPanel />
+          </Section>
+
           <Section
             title="Pose"
             aside={
@@ -201,7 +211,7 @@ export function App() {
                 <tbody>
                   {s.solution.legs.map((leg, i) => (
                     <tr key={i}>
-                      <td>{i + 1}</td>
+                      <td>{servoLabel(s.rig, i)}</td>
                       <td>{s.rig.servos[i]?.channel ?? i}</td>
                       <td className="num">{Number.isNaN(leg.alpha) ? "–" : `${fmt(leg.alpha / DEG)}°`}</td>
                       <td className="num">

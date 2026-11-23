@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""Put all six horns back to 0 deg (level), together in one frame.
+
+Usage:
+  scripts/servo_reset [--port /dev/cu.usbmodemXXXX]
+
+The servos don't report where they are, so this can't ease in from the current
+position: each servo moves to level at its own full speed. Fine after a normal
+heave/surge/sway stop or small move_servo tests; keep hands clear if a servo was
+left far from level or limp.
+
+Needs firmware/servo_test (v2) flashed and `pip install pyserial`.
+"""
+
+import argparse
+import sys
+
+from rig_serial import Link, LinkError, check_channels, find_port, frame_us, label, load_rig
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Move all horns to 0 deg (level).")
+    ap.add_argument("--port", help="serial port (default: auto-detect, or $STEWART_PORT)")
+    args = ap.parse_args()
+
+    servos = load_rig()["servos"]
+    msg = check_channels(servos)
+    if msg:
+        print(msg, file=sys.stderr)
+        return 2
+    us = frame_us(servos, [0.0] * len(servos))
+
+    try:
+        with Link(find_port(args.port)) as link:
+            link.set_all_us(us)
+    except LinkError as e:
+        print(e, file=sys.stderr)
+        return 1
+    by_label = sorted(range(len(servos)), key=lambda i: label(servos, i))
+    print("All horns at 0 deg: " + ", ".join(f"servo {label(servos, i)} = {us[servos[i]['channel']]} us" for i in by_label))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

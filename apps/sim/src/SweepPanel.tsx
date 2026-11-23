@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DEG, scoreGeometry, sweepSize, type Geometry, type SweepRange, type SweepResult } from "@stewart/kinematics";
-import { GEO, geoValue } from "./params.ts";
+import { GEO, geoValue, type DesignKey } from "./params.ts";
 import { useSim } from "./store.ts";
 import type { SweepMessage, SweepRequest } from "./sweep.worker.ts";
 
@@ -16,7 +16,7 @@ interface RangeRow {
  * has a few discrete holes, and the base radius is set by the plate you cut.
  * The rod range should stop at what the threaded rod and ball ends allow.
  */
-const START: Record<keyof Geometry, RangeRow> = {
+const START: Record<DesignKey, RangeRow> = {
   baseRadius: { vary: false, min: 70, max: 110, steps: 5 },
   platformRadius: { vary: true, min: 40, max: 90, steps: 6 },
   baseHalfAngleDeg: { vary: true, min: 14, max: 30, steps: 5 },
@@ -51,7 +51,7 @@ export function SweepPanel() {
   const running = progress !== null && !finished;
   const current = useMemo(() => scoreGeometry(s.geometry, s.limits, s.rig.collision), [s.geometry, s.limits, s.rig.collision]);
 
-  const setRow = (k: keyof Geometry, patch: Partial<RangeRow>) => setRows((r) => ({ ...r, [k]: { ...r[k], ...patch } }));
+  const setRow = (k: DesignKey, patch: Partial<RangeRow>) => setRows((r) => ({ ...r, [k]: { ...r[k], ...patch } }));
 
   const run = () => {
     worker.current?.terminate();

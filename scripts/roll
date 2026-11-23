@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+"""Roll the platform: tip it side to side about x in a slow sine wave.
+
+Usage:
+  scripts/roll AMPLITUDE PERIOD [--cycles N] [--ignore-limits] [--port /dev/cu.usbmodemXXXX]
+
+  AMPLITUDE  platform rotation either side of home, degrees (5 means -5..+5 deg)
+  PERIOD     seconds for one full back-and-forth cycle
+
+Positive roll raises the +y side (toward servo 5) and lowers the -y side (toward servo 2).
+The rotation is about the centre of the top plate at ball-joint height; the platform
+does not translate. Each leg gets its own horn angle from the shared IK
+(packages/kinematics), solved and checked for the whole swing before anything moves.
+Stop with Ctrl+C: the platform eases back home and holds. See scripts/axis_wave.py.
+"""
+import sys
+
+from axis_wave import main
+
+if __name__ == "__main__":
+    sys.exit(main("roll", "roll", "positive raises the +y side, toward servo 5"))

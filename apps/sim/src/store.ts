@@ -20,6 +20,8 @@ interface State extends Derived {
   applyGeometry: (g: Geometry) => void;
   setLimit: (k: keyof Limits, v: number) => void;
   setPose: (k: Axis, v: number) => void;
+  /** Replace the whole pose (e.g. with the pose the hardware is holding). */
+  setFullPose: (pose: Pose) => void;
   resetPose: () => void;
   /** Replace the rig with a validated config and return to home. */
   loadRig: (rig: RigConfig) => void;
@@ -53,6 +55,11 @@ export const useSim = create<State>((set, get) => ({
   },
   setPose: (k, v) => {
     const pose = { ...get().pose, [k]: v };
+    const { layout, geometry, limits, rig } = get();
+    set({ pose, solution: solve(layout, geometry, limits, pose, rig.collision) });
+  },
+  setFullPose: (p) => {
+    const pose = { ...p };
     const { layout, geometry, limits, rig } = get();
     set({ pose, solution: solve(layout, geometry, limits, pose, rig.collision) });
   },

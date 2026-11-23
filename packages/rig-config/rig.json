@@ -1,39 +1,44 @@
 {
-  "name": "design-v0",
+  "name": "build-v1",
   "measured": false,
-  "notes": "Placeholder values. Replace each with a measurement from the real parts (Phase 0), then set measured to true.",
+  "notes": "2026-11-14. Measured: hornLength 25 (shaft to ball), rodLength 190 (ball to ball), rods lean ~20 deg from vertical at home. From the CAD in base_reference/: servo pairs straddle the base seams with parallel shafts along the seam (servoYawDeg = baseHalfAngleDeg), shaft lines 49.1 mm either side of the seam; top joints in pairs 10.8 mm apart at the corners of the top triangle, each pair above a base pair (the model then predicts a 21 deg rod tilt). Servo seat in the CAD puts the shaft face 78.8 mm out along the seam; the bottom ball centre is estimated 9.2 mm beyond it (servoInset). Estimated, to be measured: bottom ball centre to plate centre (sets baseRadius, ~101 mm) and the top ball centre offset from its mounting face (sets platformRadius, ~80 mm). Servos lie on their sides, so the collision box is 19.7 tall and 40.7 along the horn, shaft ~10 mm from the outer end. 2026-11-15: servoMinDeg -75 and hornRodMinDeg 8 verified on the rig (figure8 SIZE 23 hold at phase 283: servo 5 at -73.6 deg, rod 8 deg from the horn, clear); the other limits are still placeholders. 2026-11-18: frontDeg 60 puts the front (+x) between servos 1 and 6 (was toward servos 1/2). Labels are the numbers written on the servos; legs run counter-clockwise from above, the labels clockwise. 2026-11-21: horns now have a bolt spacer between the horn and the lower ball, which moves the ball centre outward along the shaft. Not yet in the geometry: measure servo shaft face to lower ball centre along the shaft (new servoInset, was 9.2 est.); that also moves the pivot, so baseRadius = hypot(78.8 + servoInset, 49.1) and baseHalfAngleDeg = servoYawDeg = atan2(49.1, 78.8 + servoInset). With the spacer, servo 1 swept the whole firmware window (-99.8 to +99.8 deg, other servos level) with nothing touching (Servo limits panel clear sweeps, measurements/limit-marks-2026-11-21.json). Fit: servoMinDeg -75 -> -99.8, servoMaxDeg 70 -> 99.8, hornRodMinDeg 8 -> 3.4 (the smallest horn-rod angle the model can follow on that sweep; below -84.3 deg it has no pose). Verified on servo 1 only: sweep servos 2-6 before relying on horn angles past -75/+70.",
   "geometry": {
-    "baseRadius": 85,
-    "platformRadius": 60,
-    "baseHalfAngleDeg": 15,
-    "platformHalfAngleDeg": 30,
-    "hornLength": 22,
-    "rodLength": 120,
-    "servoYawDeg": 0,
+    "baseRadius": 100.8,
+    "platformRadius": 80,
+    "baseHalfAngleDeg": 29.2,
+    "platformHalfAngleDeg": 3.9,
+    "hornLength": 25,
+    "rodLength": 190,
+    "servoYawDeg": 29.2,
     "servoTiltDeg": 0,
-    "topStudTiltDeg": 0
+    "topStudTiltDeg": 0,
+    "frontDeg": 60
   },
   "limits": {
-    "servoMinDeg": -70,
-    "servoMaxDeg": 70,
+    "servoMinDeg": -99.8,
+    "servoMaxDeg": 99.8,
     "ballSwivelDeg": 30
   },
+  "motion": {
+    "maxHornDegPerSec": 90
+  },
   "collision": {
-    "servoLength": 40.7,
-    "servoWidth": 19.7,
+    "servoLength": 19.7,
+    "servoWidth": 40.7,
     "servoDepth": 42.9,
-    "shaftFromTop": 10,
-    "servoInset": 3,
+    "shaftFromTop": 9.85,
+    "shaftFromSide": 10,
+    "servoInset": 9.2,
     "rodRadius": 2,
     "minClearance": 0,
-    "hornRodMinDeg": 20
+    "hornRodMinDeg": 3.4
   },
   "servos": [
-    { "channel": 0, "direction": 1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
-    { "channel": 1, "direction": -1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
-    { "channel": 2, "direction": 1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
-    { "channel": 3, "direction": -1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
-    { "channel": 4, "direction": 1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
-    { "channel": 5, "direction": -1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 }
+    { "label": 2, "channel": 1, "direction": -1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
+    { "label": 1, "channel": 0, "direction": 1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
+    { "label": 6, "channel": 5, "direction": -1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
+    { "label": 5, "channel": 4, "direction": 1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
+    { "label": 4, "channel": 3, "direction": -1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 },
+    { "label": 3, "channel": 2, "direction": 1, "trimUs": 0, "centerUs": 1500, "usPerDeg": 10 }
   ]
 }

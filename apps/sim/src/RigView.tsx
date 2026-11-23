@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Grid, Html, OrbitControls } from "@react-three/drei";
 import { Euler, Matrix4, Quaternion, Vector3 } from "three";
 import { servoCorners, servoFrame, type Collision, type Layout, type Vec3 } from "@stewart/kinematics";
+import { servoLabel } from "@stewart/rig-config";
 import { PLATE_MARGIN } from "@stewart/template";
 import { useSim } from "./store.ts";
 
@@ -78,12 +79,13 @@ function Rig() {
         const leg = solution.legs[i]!;
         const bad = leg.faults.length > 0;
         const clash = leg.faults.includes("servo-clash");
-        // Servo body sits behind the horn plane along its shaft, centred on the pivot across the horn.
+        // Servo body sits behind the horn plane along its shaft, offset across the horn by shaftFromSide.
         const f = servoFrame(layout, i);
         const dr = -(col.servoInset + col.servoDepth / 2), dz = col.shaftFromTop - col.servoLength / 2;
-        const centre = [0, 1, 2].map((k) => f.B[k]! + f.r[k]! * dr + f.z[k]! * dz) as [number, number, number];
+        const ds = col.shaftFromSide - col.servoWidth / 2;
+        const centre = [0, 1, 2].map((k) => f.B[k]! + f.r[k]! * dr + f.s[k]! * ds + f.z[k]! * dz) as [number, number, number];
         // hornDir flips between the two servos of a pair, so (r, s, z) is left-handed for one of them and
-        // isn't a rotation. The body is symmetric across s, so build the basis from r and z alone.
+        // isn't a rotation. The box is symmetric about its centre, so build the basis from r and z alone.
         const r = new Vector3(...f.r), z = new Vector3(...f.z);
         const quat = new Quaternion().setFromRotationMatrix(new Matrix4().makeBasis(r, z.clone().cross(r), z));
         return (
@@ -101,7 +103,7 @@ function Rig() {
               </>
             )}
             <Html position={[B[0] * 1.32, B[1] * 1.32, plateZ]} center zIndexRange={[10, 0]}>
-              <span className={`leg-tag${bad ? " bad" : ""}`}>{i + 1}</span>
+              <span className={`leg-tag${bad ? " bad" : ""}`}>{servoLabel(rig, i)}</span>
             </Html>
           </group>
         );

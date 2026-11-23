@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+"""Move the platform in a level horizontal circle.
+
+Usage:
+  scripts/circle RADIUS PERIOD [--clockwise] [--cycles N] [--ignore-limits] [--port /dev/cu.usbmodemXXXX]
+
+  RADIUS     circle radius, mm (the platform centre traces this circle)
+  PERIOD     seconds per lap
+  --clockwise  go clockwise seen from above (default: counter-clockwise, +x toward +y)
+
+The top stays level, at home height, and does not rotate: only x and y change.
+It spirals out from home over the first lap, and on Ctrl+C spirals back in and holds
+(a second Ctrl+C stops at once). Every pose in the disc is solved and checked with the
+shared IK (scripts/plan_path.ts) before anything moves. --ignore-limits turns those
+faults and the speed limit into warnings; poses with no IK solution and the firmware's
+500-2500 us window are always refused.
+"""
+import argparse
+import math
+import sys
+
+from path_wave import add_common_args, run_path
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Move the platform in a level horizontal circle.")
+    ap.add_argument("radius", type=float, help="circle radius, mm")
+    ap.add_argument("period", type=float, help="seconds per lap")
+    ap.add_argument("--clockwise", action="store_true", help="go clockwise seen from above")
+    add_common_args(ap)
+    args = ap.parse_args()
+    if args.radius <= 0:
+        ap.error("radius must be positive")
+    r = args.radius
+    sign = -1.0 if args.clockwise else 1.0
+    # x = r cos(phi), y = +/- r sin(phi): starts on +x and goes round.
+    spec = {"x": [r, 1, 90], "y": [r, 1, 0 if sign > 0 else 180]}
+    return run_path(
+        name="Circle" + (" (clockwise)" if args.clockwise else ""),
+        spec=spec,
+        period=args.period,
+        args=args,
+        fits_hint=lambda k: f"RADIUS up to {k * r:.1f}",
+        status=lambda s, phi: f"radius {r * s:5.1f} mm at {math.degrees(sign * phi) % 360:5.1f} deg",
+    )
+
+
+if __name__ == "__main__":
+    sys.exit(main())

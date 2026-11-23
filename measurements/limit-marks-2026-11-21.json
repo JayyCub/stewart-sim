@@ -1,0 +1,40 @@
+{
+  "kind": "stewart-limit-marks",
+  "version": 1,
+  "marks": [
+    {
+      "id": "2026-11-21-servo1-clear-up",
+      "time": "2026-11-21T19:45:00.000Z",
+      "rigName": "build-v1",
+      "channel": 0,
+      "label": 1,
+      "kind": "clear",
+      "note": "Reported by Jacob after a slider sweep to the end of the firmware window with Go past software limits on; nothing touched (horns now have a bolt spacer between horn and lower ball). Entered by hand: the panel had no Clear mark yet.",
+      "usByChannel": [
+        2498,
+        1500,
+        1500,
+        1500,
+        1500,
+        1500
+      ]
+    },
+    {
+      "id": "2026-11-21-servo1-clear-down",
+      "time": "2026-11-21T19:45:00.000Z",
+      "rigName": "build-v1",
+      "channel": 0,
+      "label": 1,
+      "kind": "clear",
+      "note": "Reported by Jacob after a slider sweep to the end of the firmware window with Go past software limits on; nothing touched (horns now have a bolt spacer between horn and lower ball). Entered by hand: the panel had no Clear mark yet.",
+      "usByChannel": [
+        502,
+        1500,
+        1500,
+        1500,
+        1500,
+        1500
+      ]
+    }
+  ]
+}

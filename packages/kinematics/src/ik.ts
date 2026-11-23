@@ -2,7 +2,7 @@ import { DEG, add, dot, mul, norm, rotation, scale, sub, unit } from "./math.ts"
 import { collisionFaults, servoClashes } from "./collision.ts";
 import type { Collision, Geometry, LegFault, LegSolution, Layout, Limits, Pose, Solution, Vec3 } from "./types.ts";
 
-/** Centres of the three servo pairs, radians. Pair k holds legs 2k and 2k+1. */
+/** Centres of the three servo pairs before the front turn, radians. Pair k holds legs 2k and 2k+1. */
 const PAIR_CENTRES = [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3];
 
 /**
@@ -12,6 +12,9 @@ const PAIR_CENTRES = [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3];
  * other: leg 2k sits at (centre - baseHalfAngle) with its horn swinging
  * toward decreasing angle, and leg 2k+1 mirrors it. Top joints are paired
  * around the same centres using platformHalfAngle.
+ *
+ * The whole layout is turned by -frontDeg about z, so +x points at the rig's chosen
+ * front; pair k is centred at k × 120° − frontDeg.
  *
  * Each servo's frame starts radial (shaft out, horn tangential, horn-up = z),
  * is turned about z by the mirrored servo yaw, then tilted about the horn's
@@ -28,9 +31,11 @@ export function buildLayout(g: Geometry): Layout {
   const hornUp: Vec3[] = [];
   const shaftAxis: Vec3[] = [];
   const topStudAxis: Vec3[] = [];
+  const front = (g.frontDeg ?? 0) * DEG;
   const yaw = (g.servoYawDeg ?? 0) * DEG, tilt = (g.servoTiltDeg ?? 0) * DEG, stud = (g.topStudTiltDeg ?? 0) * DEG;
 
-  for (const c of PAIR_CENTRES) {
+  for (const c0 of PAIR_CENTRES) {
+    const c = c0 - front;
     for (const side of [-1, 1] as const) {
       const tb = c + side * g.baseHalfAngleDeg * DEG;
       const tp = c + side * g.platformHalfAngleDeg * DEG;

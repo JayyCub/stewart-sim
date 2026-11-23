@@ -38,6 +38,12 @@ export interface Geometry {
   servoTiltDeg?: number;
   /** Tilt of each top ball stud out of horizontal, degrees; 0 when omitted. Positive points it outward and up. */
   topStudTiltDeg?: number;
+  /**
+   * Where the rig's front (+x, positive surge) points, degrees counter-clockwise seen from above,
+   * measured from the centre of servo pair 0 (legs 0 and 1); 0 when omitted. The whole layout is
+   * turned so +x lands there: 60 puts the front in the gap between pair 0 and pair 1.
+   */
+  frontDeg?: number;
 }
 
 /** Physical limits, ideally measured on the real parts. */
@@ -94,6 +100,13 @@ export interface Collision {
   servoDepth: number;
   /** Shaft centre down from the top end of the body. */
   shaftFromTop: number;
+  /**
+   * Shaft centre in from the body's side face on the horn side (the side away from the
+   * pair partner), across the horn direction. servoWidth / 2 centres the body on the
+   * shaft. For a servo lying on its side, the body's long axis runs this way and the
+   * MG996R shaft sits about 10 mm from one end.
+   */
+  shaftFromSide: number;
   /** Horn pivot (horn plane) to the body's shaft face, radially. */
   servoInset: number;
   /** Rod radius used for rod-vs-body tests (use the rod-end housing radius to be safe). */
