@@ -1,6 +1,7 @@
 import { useRef, useState, type ReactNode } from "react";
 import type { Axis, LegFault, Limits } from "@stewart/kinematics";
 import { parseRigJson, servoLabel } from "@stewart/rig-config";
+import { FlightPanel } from "./flight/FlightPanel.tsx";
 import { HardwarePanel } from "./HardwarePanel.tsx";
 import { LimitsPanel } from "./LimitsPanel.tsx";
 import { GEO, geoValue } from "./params.ts";
@@ -162,6 +163,10 @@ export function App() {
 
           <Section title="Hardware">
             <HardwarePanel />
+          </Section>
+
+          <Section title="Flight simulator">
+            <FlightPanel />
           </Section>
 
           <Section title="Servo limits">

@@ -135,9 +135,14 @@ bar measures exactly 100 mm.
 
 ## Phase 6: Fault injection and motion cueing
 
-- [ ] Classical washout filter (high-pass translation, low-pass tilt coordination), gains exposed
-  with live plots
-- [ ] Motion input from the Unity docking sim, or a recorded flight/ride log
+- [x] Classical washout filter (high-pass translation, low-pass tilt coordination), gains exposed
+  with live plots (`packages/flight/src/washout.ts`, Flight simulator panel)
+- [x] Motion input: a 6-DOF light-aircraft flight model (`packages/flight`), flown by keyboard,
+  gamepad or scripted manoeuvres, verified against its own trim and linearised modes
+- [x] Cue limiter: every washout pose scaled into the rig's checked workspace before it reaches
+  the store (and so live control); scale drops at once, recovers slowly to avoid jolts
+- [ ] Measure delivered motion on the real rig (IMU on the top plate) against the commanded cue
+- [ ] Validate the flight model against JSBSim's Cessna 172 for the same manoeuvres
 - [ ] Instructor panel faults: stuck servo, offset drift, comm dropout/latency, corrupted frames,
   IMU noise
 - [ ] Inject in sim first, then on hardware only where safe
