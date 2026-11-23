@@ -65,7 +65,7 @@ and a framed binary serial protocol (Phase 3).
 Picks the geometry to cut from plywood; ends with a 1:1 drilling template. Also where the
 kinematics core is written and tested; every later phase reuses it.
 
-1. [x] **Kinematics core**: pose -> six horn angles (closed-form rotary IK, see CLAUDE.md).
+1. [x] **Kinematics core**: pose -> six horn angles (closed-form rotary IK, `packages/kinematics/src/ik.ts`).
 2. [x] **Limit checks**: no solution, servo range, ball-joint swivel (bottom and top).
    - [x] Collision checks: servo bodies clashing, rod through a servo body, rod folded onto its horn
      (part sizes in `rig.json` → `collision`; listing values until measured)
@@ -106,7 +106,7 @@ bar measures exactly 100 mm.
 - [ ] Framed serial protocol: header, sequence number, mode (pose or raw angles), payload, CRC-8
 - [ ] Firmware safety: clamp to limits, e-stop command, soft-start ramp, watchdog that eases home
 - [ ] Telemetry back: commanded angles, loop time, CRC failures, fault flags
-- [ ] Web Serial connect button and live-mirror mode in the app
+- [x] Web Serial connect button and live-mirror mode in the app (on the bench firmware, `firmware/servo_test`)
 
 **Done when:** the rig tracks the sliders, and pulling USB mid-motion sends it smoothly home.
 

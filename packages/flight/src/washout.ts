@@ -56,8 +56,8 @@ export const DEFAULT_WASHOUT: WashoutParams = {
   tiltWn: 2,
   tiltRateMax: 3 * DEG,
   tiltMax: 8 * DEG,
-  rotGain: 1.0,
-  rotWn: 1.5,
+  rotGain: 0.5,
+  rotWn: 1.0,
 };
 
 /**

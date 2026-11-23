@@ -1,60 +1,59 @@
 # Stewart Platform Sim
 
-Design, preview and (later) program shows for a 6-servo rotary Stewart platform:
-6 × MG996R on a PCA9685, driven by an Arduino Uno.
+[![CI](https://github.com/JayyCub/stewart-sim/actions/workflows/ci.yml/badge.svg)](https://github.com/JayyCub/stewart-sim/actions/workflows/ci.yml)
+&nbsp;[Live demo](https://jayycub.github.io/stewart-sim/)
 
-The app and the firmware share one rig config (`packages/rig-config/rig.json`) and one set of IK test
-vectors (`test-vectors/ik-v1.json`), so the sim predicts the machine instead of approximating it.
+> Built with AI coding assistance (Claude Code) as a learning project: a hands-on way to explore kinematics,
+> flight dynamics, motion cueing and embedded control on real hardware. It is not production or safety-certified software.
 
-## Docs
+A browser-based design tool, simulator and controller for a six-axis rotary Stewart platform
+(6 × MG996R servos, PCA9685, Arduino Uno). It designs the rig's geometry, checks every motion against the
+machine's physical limits, and drives the real hardware, including from a built-in flight simulator.
 
-- `CLAUDE.md` — context for Claude Code sessions
-- `docs/STATUS.md` — where things stand and what's next
-- `docs/PROJECT_PLAN.md` — phases 0–6 with checklists
-- `docs/HARDWARE.md` — parts, power, build approach, measurement checklist
-- `docs/DECISIONS.md` — decisions made, open questions, risks
+![The real platform following the flight simulator running on the laptop](docs/images/rig-flight.gif)
 
-## Layout
+## Features
 
-```
-packages/kinematics/   Pure TS: inverse kinematics, limit checks, workspace reach
-packages/rig-config/   rig.json (geometry, limits, servo calibration) + validator
-packages/template/     1:1 drilling templates for the base and top plates
-apps/sim/              React + Three.js app: 3D rig, pose/geometry sliders, leg status
-test-vectors/          Pose -> horn angle golden values; the C++ port must match them
-firmware/stewart_uno/  Arduino sketch (Phase 3)
-scripts/               gen-vectors.ts
-```
+- **Rig design:** closed-form inverse kinematics, servo, ball-joint and collision limits, a workspace map, a geometry
+  optimiser, and 1:1 drilling templates for the plates
+- **Flight simulator:** 6-DOF light-aircraft model (RK4, quaternions, trim, linearised modes, turbulence) in a 3D flight
+  game, with classical washout cueing the motion onto the platform
+- **Hardware control:** Web Serial live control and Python bench scripts, through firmware that buffers frames at 50 Hz
+- **Verification:** ~250 tests in CI, including shared IK vectors, conservation-law checks on the dynamics, and every
+  scripted manoeuvre's poses passing the rig's limit checks
 
-## Commands
+## How it works
 
-Requires Node 22 (`nvm use`).
-
-```
-pnpm install
-pnpm dev          # run the sim at http://localhost:5173
-pnpm test         # unit tests + shared test vectors
-pnpm typecheck
-pnpm build        # static build in apps/sim/dist
-pnpm vectors      # regenerate test-vectors/ik-v1.json after an intentional IK change
+```mermaid
+flowchart LR
+  rig[("rig.json<br/>geometry · limits")] --> kin
+  subgraph browser["Browser app"]
+    game["Flight model<br/>+ washout"] --> lim["Pose limiter"] --> kin["IK + limit<br/>checks"]
+  end
+  kin -- "Web Serial" --> uno["Arduino Uno<br/>clamps again"] -- "I²C" --> pca["PCA9685"] --> servos["6 × MG996R"]
 ```
 
-Web Serial (Phase 3) works in desktop Chrome and Edge only.
+One config file defines the rig. Every pose is checked against it before it is sent, and the firmware clamps again.
 
-## Conventions
+## Build progress
 
-- Lengths in mm. The kinematics API uses radians; rig.json and the UI use degrees.
-- z is up. Base frame origin: base centre at servo-shaft height. Platform frame origin: top-plate centre at top-joint height.
-- Pose rotation is R = Rz(yaw) · Ry(pitch) · Rx(roll). Home pose (all zeros) has every horn level.
-- Legs are numbered 0–5 in code (1–6 in the UI). Servo pair k holds legs 2k and 2k+1, centred at k × 120°.
-- Horn angle alpha is measured from level; positive raises the horn tip.
+| Printed parts and pushrods | Servos mounted | First assembly, wired to the Uno | Current build |
+| --- | --- | --- | --- |
+| ![3D-printed base, top plate and pushrods](docs/images/build-1-parts.jpg) | ![Six servos mounted on the base](docs/images/build-2-servos.jpg) | ![Assembled platform wired to the Arduino and PCA9685](docs/images/build-3-assembled.jpg) | ![Current build of the platform](docs/images/build-4-current.jpg) |
 
-## Phase 0 measurements still needed
+## Screenshots
 
-`rig.json` ships with placeholder numbers (`"measured": false`). Replace them with:
+| Flight sim beside the platform | Rig designer | Aircraft vs platform motion |
+| --- | --- | --- |
+| ![A light aircraft in a 30° coordinated turn beside the platform view](docs/images/flight-split.jpg) | ![Rig designer](docs/images/designer.jpg) | ![Motion cueing charts in turbulence](docs/images/flight-motion.jpg) |
 
-- [ ] Horn hole radius you will use (`hornLength`)
-- [ ] Rod centre-to-centre length once ball ends are threaded on (`rodLength`)
-- [ ] Ball-joint swivel before binding (`ballSwivelDeg`)
-- [ ] Usable servo travel either side of level (`servoMinDeg`, `servoMaxDeg`)
-- [ ] Pulse width at each end of travel, per servo (`servos[].centerUs`, `usPerDeg`)
+## Stack
+
+TypeScript, React, three.js (react-three-fiber), Zustand, Vite, Vitest · Arduino C++, PCA9685 · Python · GitHub Actions and Pages
+
+## Status
+
+The platform is assembled and flies with the simulator over live control. Next: replace the placeholder dimensions in
+`rig.json` with measured ones, and move the IK into the firmware. Flying in the demo needs the rig connected.
+
+[Plan](docs/PROJECT_PLAN.md) · [Status](docs/STATUS.md) · [Hardware](docs/HARDWARE.md) · [Decisions](docs/DECISIONS.md)

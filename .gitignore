@@ -6,3 +6,10 @@ dist/
 .playwright-mcp/
 optimized/
 __pycache__/
+CLAUDE.md
+
+# Original phone media (large, carry GPS metadata); README uses the converted copies
+docs/images/*.HEIC
+docs/images/*.heic
+docs/images/*.MOV
+docs/images/*.mov

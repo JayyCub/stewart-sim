@@ -8,7 +8,7 @@
 | 2026-10-26 | Web app: React + TypeScript + Three.js (react-three-fiber) | Strongest existing skill set; Web Serial for hardware; shareable link. Unity considered (already used for the docking sim) but serial and editing UI are more friction there. |
 | 2026-10-26 | Plates from plywood/HDPE via printed 1:1 template, not repeated 3D prints | No 3D printer on hand; flat plates + adjustable horn/rod length make iteration cheap. |
 | 2026-10-27 | TypeScript and C++ IK kept in sync by shared test vectors (`test-vectors/ik-v1.json`) | Simpler build than compiling C to WASM, and demonstrates a verification practice. |
-| 2026-10-27 | Horn angle 0 = level at home; rotation order Rz·Ry·Rx; legs 0–5, pairs at 0/120/240° | See CLAUDE.md conventions. |
+| 2026-10-27 | Horn angle 0 = level at home; rotation order Rz·Ry·Rx; legs 0–5, pairs at 0/120/240° | Frames and sign conventions are documented in `packages/kinematics/src/types.ts`. |
 | 2026-10-27 | Ball-joint limit = rod tilt from perpendicular to the stud; top studs radial | Matches how RC ball links bind. Revisit if top joints are mounted differently. |
 | 2026-10-27 | Node 22 pinned (`.nvmrc`, `engines`) | Vite 8 / Vitest 5 need Node ≥ 20.19. |
 
